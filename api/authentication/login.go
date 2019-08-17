@@ -14,11 +14,13 @@ import (
 	"time"
 )
 
+const tokenExpiration = 60 * 60 * 24 * 3
+
 // Generate authentication tokens for users given a username and password
 func Login(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Validate initial request on Content-Type header and body
-		if r.Header.Get("Content-Type") == "application/json" {
+		if r.Header.Get("Content-Type") != "application/json" {
 			util.Responses.Error(w, http.StatusBadRequest, "header 'Content-Type' must be 'application/json'")
 			return
 		} else if r.Body == nil {
@@ -77,7 +79,7 @@ func Login(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		// Generate token with claims
 		token := jwt.NewWithClaims(jwt.SigningMethodHS512, &jwt.StandardClaims{
-			ExpiresAt: time.Now().Unix(),
+			ExpiresAt: time.Now().Unix() + tokenExpiration,
 			IssuedAt:  time.Now().Unix(),
 			NotBefore: time.Now().Unix(),
 			Subject:   fmt.Sprint(user.ID),
