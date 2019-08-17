@@ -28,3 +28,15 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/jinzhu/gorm"
+  version = "1.9.10"
+
+[[constraint]]
+  name = "gopkg.in/hlandau/passlib.v1"
+  version = "1.0.10"
+
+[[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "3.2.0"
