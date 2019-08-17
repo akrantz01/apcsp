@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	"os"
@@ -17,8 +18,6 @@ import (
 )
 
 var shutdown = make(chan os.Signal, 1)
-
-const address = "127.0.0.1:8080"
 
 func main() {
 	// Connect to the database
@@ -42,7 +41,7 @@ func main() {
 
 	// Setup HTTP server
 	server := &http.Server{
-		Addr:         address,
+		Addr:         viper.GetString("http.host") + ":" + viper.GetString("http.port"),
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
@@ -51,7 +50,7 @@ func main() {
 
 	// Start http server
 	go func() {
-		log.Printf("API listening on %s", address)
+		log.Printf("API listening on %s:%s...", viper.GetString("http.host"), viper.GetString("http.port"))
 		if err := server.ListenAndServe(); err != nil {
 			if strings.Contains(err.Error(), "Server closed") {
 				return
