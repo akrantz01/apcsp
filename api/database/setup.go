@@ -4,23 +4,15 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/spf13/viper"
 	"log"
-)
-
-const (
-	host     = "172.17.0.2"
-	port     = "5432"
-	user     = "postgres"
-	password = "postgres"
-	dbname   = "postgres"
-	sslmode  = "disable"
 )
 
 // Connect to the database and create the schema
 func SetupDatabase() *gorm.DB {
 	log.Println("Connecting to database...")
 	// Connect to database
-	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbname, sslmode))
+	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", viper.GetString("database.host"), viper.GetString("database.port"), viper.GetString("database.username"), viper.GetString("database.password"), viper.GetString("database.database"), viper.GetString("database.ssl")))
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -28,8 +20,11 @@ func SetupDatabase() *gorm.DB {
 
 	log.Println("Building database schema...")
 	// Create schema if not exist
-	for _, model := range []interface{}{} {
-		if !db.HasTable(model) {
+	for _, model := range []interface{}{&User{}, &Token{}} {
+		if viper.GetBool("database.reset") {
+			db.DropTableIfExists(model)
+			db.CreateTable(model)
+		} else if !db.HasTable(model) {
 			db.CreateTable(model)
 		}
 	}
