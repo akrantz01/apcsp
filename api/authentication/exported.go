@@ -11,6 +11,9 @@ import (
 func Authentication(db *gorm.DB) func(r *http.Request, w http.ResponseWriter) {
 	return func(r *http.Request, w http.ResponseWriter) {
 		switch r.Method {
+		case http.MethodGet:
+			logout(r, w, db)
+
 		case http.MethodPost:
 			login(r, w, db)
 
