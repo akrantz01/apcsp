@@ -14,6 +14,6 @@ type User struct {
 type Token struct {
 	gorm.Model
 	SigningKey string
-	UserId     int
+	UserId     uint
 	User       User
 }
