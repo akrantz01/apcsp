@@ -1,0 +1,33 @@
+# Main server configuration
+http:
+  # What address to listen on
+  # Use 0.0.0.0 for all interfaces
+  # Default: 127.0.0.1
+  host: 127.0.0.1
+  # What port to listen on
+  # Default: 8080
+  port: 8080
+
+# Database connection configuration
+database:
+  # Address where the PostgreSQL server is running
+  # Default: 127.0.0.1
+  host: 127.0.0.1
+  # Port where the PostgreSQL server is listening
+  port: 5432
+  # SSL mode of GORM
+  # Options: disable, allow, prefer, require, verify-ca, verify-full
+  # Default: disable
+  ssl: disable
+  # Username to authenticate against
+  # Default: postgres
+  username: postgres
+  # Password corresponding with username
+  # Default: postgres
+  password: postgres
+  # Database to write tables to
+  # Default: postgres
+  database: postgres
+  # Delete the tables if they already exist
+  # Default: false
+  reset: false
