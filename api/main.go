@@ -27,6 +27,9 @@ func main() {
 	// Setup routes
 	router := mux.NewRouter()
 
+	// Enable authentication middleware
+	router.Use(authMiddleware(db))
+
 	// API sub-router
 	api := router.PathPrefix("/api").Subrouter()
 

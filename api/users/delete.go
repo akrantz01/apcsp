@@ -9,20 +9,17 @@ import (
 )
 
 func deleteMethod(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	// Validate initial request on path parameters and headers
+	// Validate initial request on path parameters
 	vars := mux.Vars(r)
 	if _, ok := vars["user"]; !ok {
 		util.Responses.Error(w, http.StatusBadRequest, "path parameter 'user' must be present")
 		return
-	} else if r.Header.Get("Authorization") == "" {
-		util.Responses.Error(w, http.StatusUnauthorized, "header 'Authorization' must be present")
-		return
 	}
 
-	// Validate JWT
-	token, err := util.JWT.Validate(r.Header.Get("Authorization"), db)
+	// Get token w/o validation
+	token, err := util.JWT.Unvalidated(r.Header.Get("Authorization"))
 	if err != nil {
-		util.Responses.Error(w, http.StatusUnauthorized, "invalid token: "+err.Error())
+		util.Responses.Error(w, http.StatusInternalServerError, "failed to get token parts")
 		return
 	}
 

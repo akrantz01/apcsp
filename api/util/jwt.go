@@ -67,3 +67,13 @@ func (j jwtClass) CheckUser(token *jwt.Token, user database.User, db *gorm.DB) (
 	// Ensure users are the same
 	return user.ID == tokenUser.ID, nil
 }
+
+func (j jwtClass) Unvalidated(tokenString string) (*jwt.Token, error) {
+	parser := jwt.Parser{}
+	token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
+}

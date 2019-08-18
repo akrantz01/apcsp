@@ -16,18 +16,18 @@ func update(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if _, ok := vars["user"]; !ok {
 		util.Responses.Error(w, http.StatusBadRequest, "path parameter 'user' must be present")
 		return
-	} else if r.Header.Get("Authorization") == "" {
-		util.Responses.Error(w, http.StatusUnauthorized, "header 'Authorization' must be present")
+	} else if r.Header.Get("Content-Type") != "application/json" {
+		util.Responses.Error(w, http.StatusUnauthorized, "header 'Content-Type' must be 'application/json'")
 		return
 	} else if r.Body == nil {
 		util.Responses.Error(w, http.StatusBadRequest, "body must be present")
 		return
 	}
 
-	// Ensure JWT is valid
-	token, err := util.JWT.Validate(r.Header.Get("Authorization"), db)
+	// Get token w/o validation
+	token, err := util.JWT.Unvalidated(r.Header.Get("Authorization"))
 	if err != nil {
-		util.Responses.Error(w, http.StatusUnauthorized, "invalid token: "+err.Error())
+		util.Responses.Error(w, http.StatusInternalServerError, "failed to get token parts")
 		return
 	}
 
