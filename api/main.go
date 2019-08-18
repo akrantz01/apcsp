@@ -36,7 +36,7 @@ func main() {
 
 	// User routes
 	api.HandleFunc("/users", users.AllUsers(db)).Methods("POST")
-	api.HandleFunc("/users/{user}", users.SpecificUser(db)).Methods("GET")
+	api.HandleFunc("/users/{user}", users.SpecificUser(db)).Methods("GET", "PUT")
 
 	// Register router with http and enable cors
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, cors.AllowAll().Handler(router)))
