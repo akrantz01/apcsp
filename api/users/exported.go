@@ -10,6 +10,9 @@ import (
 func AllUsers(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
+		case http.MethodGet:
+			list(w, r, db)
+
 		case http.MethodPost:
 			create(w, r, db)
 

@@ -38,7 +38,7 @@ func main() {
 	api.HandleFunc("/auth/logout", authentication.Logout(db)).Methods("GET")
 
 	// User routes
-	api.HandleFunc("/users", users.AllUsers(db)).Methods("POST")
+	api.HandleFunc("/users", users.AllUsers(db)).Methods("GET", "POST")
 	api.HandleFunc("/users/{user}", users.SpecificUser(db)).Methods("GET", "PUT", "DELETE")
 
 	// Register router with http and enable cors
