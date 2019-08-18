@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/akrantz01/apcsp/api/authentication"
 	"github.com/akrantz01/apcsp/api/database"
+	"github.com/akrantz01/apcsp/api/users"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -32,6 +33,9 @@ func main() {
 	// Authentication routes
 	api.HandleFunc("/auth/login", authentication.Login(db)).Methods("POST")
 	api.HandleFunc("/auth/logout", authentication.Logout(db)).Methods("GET")
+
+	// User routes
+	api.HandleFunc("/users", users.AllUsers(db)).Methods("POST")
 
 	// Register router with http and enable cors
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, cors.AllowAll().Handler(router)))
