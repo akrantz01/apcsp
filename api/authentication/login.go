@@ -39,6 +39,9 @@ func Login(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 		} else if body.Username == "" || body.Password == "" {
 			util.Responses.Error(w, http.StatusBadRequest, "fields 'username' and 'password' are required")
 			return
+		} else if len(body.Password) != 64 {
+			util.Responses.Error(w, http.StatusBadRequest, "field 'password' must be of length 64")
+			return
 		}
 
 		// Check if user exists

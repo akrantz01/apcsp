@@ -10,16 +10,10 @@ import (
 // Revoke authentication tokens
 func Logout(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Validate initial request on headers
-		if r.Header.Get("Authorization") == "" {
-			util.Responses.Error(w, http.StatusBadRequest, "header 'Authorization' is required")
-			return
-		}
-
-		// Verify JWT from headers
-		token, err := util.JWT.Validate(r.Header.Get("Authorization"), db)
+		// Get token w/o validation
+		token, err := util.JWT.Unvalidated(r.Header.Get("Authorization"))
 		if err != nil {
-			util.Responses.Error(w, http.StatusUnauthorized, "invalid token: "+err.Error())
+			util.Responses.Error(w, http.StatusInternalServerError, "failed to get token parts")
 			return
 		}
 
