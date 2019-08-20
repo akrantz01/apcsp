@@ -28,7 +28,15 @@ func list(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var currentToken database.Token
 	db.Where("id = ?", token).First(&currentToken)
 
+	var messages []database.Message
+	db.Where("sender_id = ?", currentToken.UserId).Find(&messages)
 
-	util.Responses.Success(w)
+	if messages == nil {
+		util.Responses.Error(w,http.StatusInternalServerError, "Failed to identify any messages from the given user")
+		return
+	}else{
+		util.Responses.SuccessWithData(w, messages)
+
+	}
 }
 
