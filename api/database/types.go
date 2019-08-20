@@ -18,3 +18,21 @@ type Token struct {
 	UserId     uint
 	User       User
 }
+
+// Stores user chat information
+type Chat struct {
+	gorm.Model
+	Users    []User    `json:"users"`
+	Messages []Message `json:"messages"`
+}
+
+// Stores user message information
+type Message struct {
+	gorm.Model `json:"-"`
+	SenderId   uint   `json:"-"`
+	ReceiverId uint   `json:"-"`
+	Sender     User   `json:"sender"`
+	Receiver   User   `json:"receiver"`
+	Message    string `json:"message"`
+	Timestamp  int64  `json:"timestamp"`
+}
