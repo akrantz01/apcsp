@@ -14,6 +14,7 @@
   "dependencies": {
     "@expo/samples": "~3.0.3",
     "@expo/vector-icons": "^10.0.3",
+    "@react-native-community/eslint-config": "0.0.5",
     "@react-navigation/web": "^1.0.0-alpha.9",
     "expo": "^34.0.1",
     "expo-asset": "^6.0.0",
@@ -29,6 +30,9 @@
   },
   "devDependencies": {
     "babel-preset-expo": "^6.0.0",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^6.1.0",
+    "eslint-plugin-prettier": "^3.1.0",
     "jest-expo": "^34.0.0"
   },
   "private": true
