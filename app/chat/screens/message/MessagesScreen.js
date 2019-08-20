@@ -32,7 +32,6 @@ export default class MessagesScreen extends Component {
                         onRefresh={this._onRefresh.bind(this)}
                     />
                 }
-                data={[{key: 'Jane'}, {key: 'Bob'}]}
                 sections={[
                     // homogeneous rendering between sections
                     {data: [{key: 'Jane'}], title: 'Jane'},

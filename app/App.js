@@ -1,32 +1,20 @@
-import React from 'react';
-import {createBottomTabNavigator, createAppContainer} from 'react-navigation';
-import Icon from 'react-native-vector-icons/Feather';
-import HomeScreen from './screens/HomeScreen';
-import SettingsScreen from './screens/SettingsScreen';
+import {createSwitchNavigator, createAppContainer} from 'react-navigation';
+import App from './chat/ChatNavigator';
+import {AuthNavigator} from './auth/AuthNavigator';
+import {AuthLoadingScreen} from './auth/screens/AuthLoadingScreen';
 
-const MainNavigator = createBottomTabNavigator(
-    {
-        Messages: {screen: HomeScreen},
-        Settings: {screen: SettingsScreen},
-    },
-    {
-        defaultNavigationOptions: ({navigation}) => ({
-            tabBarIcon: ({tintColor}) => {
-                const {routeName} = navigation.state;
-                let iconName;
-                if (routeName === 'Messages') {
-                    iconName = 'message-circle';
-                } else if (routeName === 'Settings') {
-                    iconName = 'settings';
-                }
+// Implementation of MessageStack, OtherScreen, SignInScreen, AuthLoadingScreen
+// goes here.
 
-                // You can return any component that you like here!
-                return <Icon name={iconName} size={25} color={tintColor} />;
-            },
-        }),
-    },
+export default createAppContainer(
+    createSwitchNavigator(
+        {
+            AuthLoading: AuthLoadingScreen,
+            App: App,
+            Auth: AuthNavigator,
+        },
+        {
+            initialRouteName: 'AuthLoading',
+        },
+    ),
 );
-
-const App = createAppContainer(MainNavigator);
-
-export default App;
