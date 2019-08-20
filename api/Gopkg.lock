@@ -2,6 +2,20 @@
 
 
 [[projects]]
+  branch = "backend-messages"
+  digest = "1:061cb3cdddc9021c4056029db8f3a41e7ec6e9f6663fac3fd64d6575934252bd"
+  name = "github.com/akrantz01/apcsp"
+  packages = [
+    "api/authentication",
+    "api/chats",
+    "api/database",
+    "api/users",
+    "api/util",
+  ]
+  pruneopts = "UT"
+  revision = "2ff99e4baf04df44ca5c0518d8d99b78fafb0994"
+
+[[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -249,6 +263,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/akrantz01/apcsp/api/authentication",
+    "github.com/akrantz01/apcsp/api/chats",
+    "github.com/akrantz01/apcsp/api/database",
+    "github.com/akrantz01/apcsp/api/users",
+    "github.com/akrantz01/apcsp/api/util",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",

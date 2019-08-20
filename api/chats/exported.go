@@ -13,6 +13,9 @@ func AllChats(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 		case http.MethodPost:
 			create(w, r, db)
 
+		case http.MethodGet:
+			list(w,r,db)
+
 		default:
 			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
