@@ -9,6 +9,7 @@ type User struct {
 	Email      string `json:"email"`
 	Username   string `json:"username"`
 	Password   string `json:"-"`
+	Chats      []Chat `json:"-"`
 }
 
 // Store authentication tokens returned from login
@@ -22,17 +23,16 @@ type Token struct {
 // Stores user chat information
 type Chat struct {
 	gorm.Model
-	Users    []User    `json:"users"`
-	Messages []Message `json:"messages"`
+	Name     string    `json:"name"`
+	Messages []Message `json:"messages",gorm:"foreignkey:ChatId"`
 }
 
 // Stores user message information
 type Message struct {
 	gorm.Model `json:"-"`
 	SenderId   uint   `json:"-"`
-	ReceiverId uint   `json:"-"`
+	ChatId     uint   `json:"-"`
 	Sender     User   `json:"sender"`
-	Receiver   User   `json:"receiver"`
 	Message    string `json:"message"`
 	Timestamp  int64  `json:"timestamp"`
 }

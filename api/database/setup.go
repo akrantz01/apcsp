@@ -20,7 +20,7 @@ func SetupDatabase() *gorm.DB {
 
 	log.Println("Building database schema...")
 	// Create schema if not exist
-	for _, model := range []interface{}{&User{}, &Token{}} {
+	for _, model := range []interface{}{&User{}, &Token{}, &Chat{}, &Message{}} {
 		if viper.GetBool("database.reset") {
 			db.DropTableIfExists(model)
 			db.CreateTable(model)
