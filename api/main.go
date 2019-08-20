@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/akrantz01/apcsp/api/authentication"
+	"github.com/akrantz01/apcsp/api/chats"
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/users"
 	"github.com/gorilla/handlers"
@@ -40,6 +41,9 @@ func main() {
 	// User routes
 	api.HandleFunc("/users", users.AllUsers(db)).Methods("GET", "POST")
 	api.HandleFunc("/users/{user}", users.SpecificUser(db)).Methods("GET", "PUT", "DELETE")
+
+	// Chat routes
+	api.HandleFunc("/chats", chats.AllChats(db)).Methods("POST")
 
 	// Register router with http and enable cors
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, cors.AllowAll().Handler(router)))

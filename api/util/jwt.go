@@ -68,6 +68,7 @@ func (j jwtClass) CheckUser(token *jwt.Token, user database.User, db *gorm.DB) (
 	return user.ID == tokenUser.ID, nil
 }
 
+// Get the parts of a token with out any validation
 func (j jwtClass) Unvalidated(tokenString string) (*jwt.Token, error) {
 	parser := jwt.Parser{}
 	token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
@@ -76,4 +77,13 @@ func (j jwtClass) Unvalidated(tokenString string) (*jwt.Token, error) {
 	}
 
 	return token, nil
+}
+
+// Get the map claims from the token
+func (j jwtClass) Claims(token *jwt.Token) jwt.MapClaims {
+	if claims, ok := token.Claims.(jwt.MapClaims); !ok {
+		return nil
+	} else {
+		return claims
+	}
 }
