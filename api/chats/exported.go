@@ -14,7 +14,7 @@ func AllChats(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 			create(w, r, db)
 
 		case http.MethodGet:
-			list(w,r,db)
+			list(w, r, db)
 
 		default:
 			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
@@ -22,4 +22,15 @@ func AllChats(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: add modification and deletion
+// Methods pertaining to specific chats such as description, modification and deletion
+func SpecificChat(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			read(w, r, db)
+
+		default:
+			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
+		}
+	}
+}

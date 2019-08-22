@@ -5,6 +5,7 @@ import (
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
 	"github.com/jinzhu/gorm"
+	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"time"
 )
@@ -64,9 +65,17 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 	users = append(users, &requestingUser)
 
+	// Generate UUID for chat
+	u, err := uuid.NewV4().MarshalText()
+	if err != nil {
+		util.Responses.Error(w, http.StatusInternalServerError, "failed to encode uuid to text")
+		return
+	}
+
 	// Create chat
 	chat := &database.Chat{
-		Name: body.Name,
+		DisplayName: body.Name,
+		UUID:        string(u),
 	}
 	db.NewRecord(chat)
 	db.Create(&chat)

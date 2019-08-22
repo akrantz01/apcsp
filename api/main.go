@@ -44,6 +44,7 @@ func main() {
 
 	// Chat routes
 	api.HandleFunc("/chats", chats.AllChats(db)).Methods("GET", "POST")
+	api.HandleFunc("/chats/{chat}", chats.SpecificChat(db)).Methods("GET")
 
 	// Register router with http and enable cors
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, cors.AllowAll().Handler(router)))

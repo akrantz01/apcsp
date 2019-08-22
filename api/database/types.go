@@ -22,10 +22,11 @@ type Token struct {
 
 // Stores user chat information
 type Chat struct {
-	gorm.Model `json:"-"`
-	Name       string    `json:"name"`
-	Users      []User    `json:"users" gorm:"many2many:user_chats"`
-	Messages   []Message `json:"messages" gorm:"foreignkey:ChatId"`
+	gorm.Model  `json:"-"`
+	DisplayName string    `json:"name"`
+	UUID        string    `json:"uuid"`
+	Users       []User    `json:"users" gorm:"many2many:user_chats"`
+	Messages    []Message `json:"messages" gorm:"foreignkey:ChatId"`
 }
 
 // Stores user message information
