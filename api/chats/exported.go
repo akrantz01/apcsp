@@ -29,6 +29,9 @@ func SpecificChat(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			read(w, r, db)
 
+		case http.MethodPut:
+			update(w, r, db)
+
 		default:
 			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
