@@ -30,5 +30,8 @@ func SetupDatabase() *gorm.DB {
 	}
 	log.Println("Built database schema")
 
+	// Enable struct preloading (for relationships)
+	db.Set("gorm:auto_preload", true)
+
 	return db
 }

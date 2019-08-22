@@ -8,15 +8,6 @@ import (
 )
 
 func list(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	// Validate initial request on headers and body
-	if r.Header.Get("Content-Type") != "application/json" {
-		util.Responses.Error(w, http.StatusBadRequest, "header 'Content-Type' must be 'application/json'")
-		return
-	} else if r.Body == nil {
-		util.Responses.Error(w, http.StatusBadRequest, "request body must exist")
-		return
-	}
-
 	// Get token w/o validation
 	token, err := util.JWT.Unvalidated(r.Header.Get("Authorization"))
 	if err != nil {
@@ -24,19 +15,15 @@ func list(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	// Retrieve current user
+	var user database.User
+	db.Preload("Chats").Preload("Chats.Users").Preload("Chats.Messages").Preload("Chats.Messages.Sender").Where("id = ?", util.JWT.Claims(token)["sub"]).First(&user)
 
-	var currentToken database.Token
-	db.Where("id = ?", token).First(&currentToken)
-
-	var messages []database.Message
-	db.Where("sender_id = ?", currentToken.UserId).Find(&messages)
-
-	if messages == nil {
-		util.Responses.Error(w,http.StatusInternalServerError, "Failed to identify any messages from the given user")
+	// Return empty array if no data
+	if len(user.Chats) == 0 {
+		util.Responses.SuccessWithData(w, []string{})
 		return
-	}else{
-		util.Responses.SuccessWithData(w, messages)
-
 	}
-}
 
+	util.Responses.SuccessWithData(w, user.Chats)
+}

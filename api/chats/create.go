@@ -44,42 +44,38 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var requestingUser database.User
 	db.Where("id = ?", util.JWT.Claims(token)["sub"]).First(&requestingUser)
 
-	// Check not sending to only to self
-	if len(body.Users) == 1 && body.Users[0] == requestingUser.Username {
-		util.Responses.Error(w, http.StatusBadRequest, "sending messages to self is not allowed")
-		return
-	}
-
 	// Check all users specified exist
-	var users []database.User
+	var users []*database.User
 	for _, name := range body.Users {
-		// Reduce number of queries
+		// Ensure not requesting self
 		if requestingUser.Username == name {
-			users = append(users, requestingUser)
+			util.Responses.Error(w, http.StatusBadRequest, "current user cannot be included in recipients")
+			return
 		}
 
+		// Check user exists
 		var checkUser database.User
 		db.Where("username = ?", name).First(&checkUser)
 		if checkUser.ID == 0 {
 			util.Responses.Error(w, http.StatusBadRequest, "username '"+name+"' does not exist")
 			return
 		}
-		users = append(users, checkUser)
+		users = append(users, &checkUser)
 	}
+	users = append(users, &requestingUser)
 
 	// Create chat
 	chat := &database.Chat{
-		Name:     body.Name,
-		Messages: []database.Message{},
+		Name: body.Name,
 	}
 	db.NewRecord(chat)
 	db.Create(&chat)
 
 	// Add initial message to chat
 	message := database.Message{
-		SenderId:  requestingUser.ID,
 		ChatId:    chat.ID,
 		Sender:    requestingUser,
+		SenderId:  requestingUser.ID,
 		Message:   body.Message,
 		Timestamp: time.Now().UnixNano(),
 	}
@@ -90,10 +86,10 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	chat.Messages = append(chat.Messages, message)
 	db.Save(&chat)
 
-	// Add chat to each user
+	// Add chat to each user and each user to chat
 	for _, user := range users {
-		user.Chats = append(user.Chats, *chat)
-		db.Save(&user)
+		db.Model(&user).Association("Chats").Append(chat)
+		db.Model(&chat).Association("Users").Append(user)
 	}
 
 	util.Responses.Success(w)
