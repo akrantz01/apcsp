@@ -60,7 +60,8 @@ func list(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			util.Responses.Error(w, http.StatusBadRequest, "query parameter 'page' must be an integer")
 			return
 		}
-	} else if r.URL.Query().Get("per_page") != "" {
+	}
+	if r.URL.Query().Get("per_page") != "" {
 		perPage, err = strconv.ParseInt(r.URL.Query().Get("per_page"), 10, 64)
 		if err != nil {
 			util.Responses.Error(w, http.StatusBadRequest, "query parameter 'per_page' must be an integer")
@@ -69,7 +70,7 @@ func list(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// Ensure length is not greater than end
-	endIndex := perPage + (page * perPage) + 1
+	endIndex := perPage + (page * perPage)
 	if endIndex > int64(len(chat.Messages)) {
 		endIndex = int64(len(chat.Messages))
 	}
