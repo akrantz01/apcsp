@@ -13,6 +13,9 @@ func AllMessages(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			list(w, r, db)
 
+		case http.MethodPost:
+			create(w, r, db)
+
 		default:
 			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
