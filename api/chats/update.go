@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"net/http"
-	"strconv"
 )
 
 func update(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -39,23 +38,17 @@ func update(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	// Ensure id is of correct type
-	idStr := util.JWT.Claims(token)["sub"]
-	if _, ok := idStr.(string); !ok {
-		util.Responses.Error(w, http.StatusBadRequest, "invalid type for 'subject' in token")
-		return
-	}
-
-	// Ensure id is a number
-	id, err := strconv.ParseUint(idStr.(string), 10, 32)
+	// Get user id from token
+	uid, err := util.JWT.UserId(token)
 	if err != nil {
-		util.Responses.Error(w, http.StatusBadRequest, "invalid type for 'subject' in token")
+		util.Responses.Error(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	// Check if requesting user is part of chat
 	valid := false
 	for _, user := range chat.Users {
-		if uint(id) == user.ID {
+		if uid == user.ID {
 			valid = true
 			break
 		}

@@ -6,6 +6,7 @@ import (
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
+	"strconv"
 )
 
 var JWT = jwtClass{}
@@ -86,4 +87,21 @@ func (j jwtClass) Claims(token *jwt.Token) jwt.MapClaims {
 	} else {
 		return claims
 	}
+}
+
+// Get user id from token
+func (j jwtClass) UserId(token *jwt.Token) (uint, error) {
+	// Ensure id is of correct type
+	idStr := JWT.Claims(token)["sub"]
+	if _, ok := idStr.(string); !ok {
+		return 0, fmt.Errorf("invalid type for 'subject' in token")
+	}
+
+	// Ensure id is a number
+	id, err := strconv.ParseUint(idStr.(string), 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("invalid type for 'subject' in token")
+	}
+
+	return uint(id), nil
 }
