@@ -10,6 +10,9 @@ import (
 func AllMessages(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
+		case http.MethodGet:
+			list(w, r, db)
+
 		default:
 			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
