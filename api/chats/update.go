@@ -27,6 +27,10 @@ func update(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// Check that chat exists
 	var chat database.Chat
 	db.Preload("Users").Where("uuid = ?", vars["chat"]).First(&chat)
+	if chat.ID == 0 {
+		util.Responses.Error(w, http.StatusBadRequest, "specified chat does not exist")
+		return
+	}
 
 	// Get token w/o validation
 	token, err := util.JWT.Unvalidated(r.Header.Get("Authorization"))
