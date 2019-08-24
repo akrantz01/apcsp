@@ -25,5 +25,10 @@ func list(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	// Get most recent message for each chat
+	for index, chat := range user.Chats {
+		user.Chats[index].Messages = []database.Message{chat.Messages[len(chat.Messages)-1]}
+	}
+
 	util.Responses.SuccessWithData(w, user.Chats)
 }

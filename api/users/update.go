@@ -17,7 +17,7 @@ func update(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		util.Responses.Error(w, http.StatusBadRequest, "path parameter 'user' must be present")
 		return
 	} else if r.Header.Get("Content-Type") != "application/json" {
-		util.Responses.Error(w, http.StatusUnauthorized, "header 'Content-Type' must be 'application/json'")
+		util.Responses.Error(w, http.StatusBadRequest, "header 'Content-Type' must be 'application/json'")
 		return
 	} else if r.Body == nil {
 		util.Responses.Error(w, http.StatusBadRequest, "body must be present")
