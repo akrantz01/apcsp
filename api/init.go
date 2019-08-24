@@ -25,7 +25,7 @@ func init() {
 	if err := viper.ReadInConfig(); err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
-			break
+			log.Fatalf("Configuration file not found")
 		default:
 			log.Fatalf("Failed to parse configuration file: %s", err)
 		}
