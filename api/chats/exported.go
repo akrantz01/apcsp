@@ -16,6 +16,8 @@ func AllChats(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			list(w, r, db)
 
+
+
 		default:
 			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
@@ -28,6 +30,9 @@ func SpecificChat(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			read(w, r, db)
+
+		case http.MethodDelete:
+			deleteMethod(w, r, db)
 
 		default:
 			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
