@@ -9,10 +9,18 @@ import (
 )
 
 func deleteMethod(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	// Get token w/o validation
+	// Validate initial request on path parameters
 	vars := mux.Vars(r)
 	if _, ok := vars["chat"]; !ok {
 		util.Responses.Error(w, http.StatusBadRequest, "path parameter 'chat' must be present")
+		return
+	}
+
+	// Ensure chat exists
+	var chat database.Chat
+	db.Preload("Users").Where("uuid = ?", vars["chat"]).First(&chat)
+	if chat.ID == 0 {
+		util.Responses.Error(w, http.StatusBadRequest, "specified chat does not exist")
 		return
 	}
 
@@ -23,27 +31,37 @@ func deleteMethod(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	// Get user id from token
+	id, err := util.JWT.UserId(token)
+	if err != nil {
+		util.Responses.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	// Get user from database
 	var user database.User
-	db.Where("username = ?", vars["chat"]).First(&user)
+	db.Where("id = ?", id).First(&user)
 	if user.ID == 0 {
 		util.Responses.Error(w, http.StatusBadRequest, "specified user does not exist")
 		return
 	}
 
-	// Ensure user from token is user being modified
-	if sameUser, err := util.JWT.CheckUser(token, user, db); err != nil {
-		util.Responses.Error(w, http.StatusBadRequest, "user associated with token not found")
-		return
-	} else if !sameUser {
-		util.Responses.Error(w, http.StatusForbidden, "not allowed to modify other users")
+	// Ensure user is in chat
+	valid := false
+	for _, u := range chat.Users {
+		if u.ID == id {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		util.Responses.Error(w, http.StatusForbidden, "specified user is not in chat")
 		return
 	}
 
-	// Delete the
-	vars := mux.Vars(r)
-	db.Delete(database.Chat{}, "id = ?", vars["chat"])
+	// Delete chat and messages
+	db.Delete(database.Message{}, "chat_id = ?", chat.ID)
+	db.Delete(&chat)
 
-
-
+	util.Responses.Success(w)
 }
