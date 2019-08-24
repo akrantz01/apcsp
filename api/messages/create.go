@@ -51,6 +51,7 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, chat := range chat.Users {
 		if uid == chat.ID {
 			valid = true
+			break
 		}
 	}
 	if !valid {

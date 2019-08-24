@@ -47,6 +47,7 @@ func read(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, user := range chat.Users {
 		if uid == user.ID {
 			valid = true
+			break
 		}
 	}
 	if !valid {
