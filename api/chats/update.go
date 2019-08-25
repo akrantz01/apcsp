@@ -54,7 +54,7 @@ func update(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 	}
 	if !valid {
-		util.Responses.Error(w, http.StatusUnauthorized, "user is not part of specified chat")
+		util.Responses.Error(w, http.StatusForbidden, "user is not part of specified chat")
 		return
 	}
 
