@@ -6,6 +6,7 @@ import (
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
+	"strconv"
 )
 
 var JWT = jwtClass{}
@@ -68,6 +69,7 @@ func (j jwtClass) CheckUser(token *jwt.Token, user database.User, db *gorm.DB) (
 	return user.ID == tokenUser.ID, nil
 }
 
+// Get the parts of a token with out any validation
 func (j jwtClass) Unvalidated(tokenString string) (*jwt.Token, error) {
 	parser := jwt.Parser{}
 	token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
@@ -76,4 +78,30 @@ func (j jwtClass) Unvalidated(tokenString string) (*jwt.Token, error) {
 	}
 
 	return token, nil
+}
+
+// Get the map claims from the token
+func (j jwtClass) Claims(token *jwt.Token) jwt.MapClaims {
+	if claims, ok := token.Claims.(jwt.MapClaims); !ok {
+		return nil
+	} else {
+		return claims
+	}
+}
+
+// Get user id from token
+func (j jwtClass) UserId(token *jwt.Token) (uint, error) {
+	// Ensure id is of correct type
+	idStr := JWT.Claims(token)["sub"]
+	if _, ok := idStr.(string); !ok {
+		return 0, fmt.Errorf("invalid type for 'subject' in token")
+	}
+
+	// Ensure id is a number
+	id, err := strconv.ParseUint(idStr.(string), 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("invalid type for 'subject' in token")
+	}
+
+	return uint(id), nil
 }
