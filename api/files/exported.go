@@ -10,6 +10,9 @@ import (
 func Files(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
+		case http.MethodGet:
+			get(w, r, db)
+
 		case http.MethodPost:
 			post(w, r, db)
 

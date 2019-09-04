@@ -53,7 +53,7 @@ func main() {
 	api.HandleFunc("/chats/{chat}/messages/{message}", messages.SpecificMessage(db)).Methods("GET", "PUT", "DELETE")
 
 	// Files routes
-	api.HandleFunc("/files/{file}", files.Files(db)).Methods("POST")
+	api.HandleFunc("/files/{file}", files.Files(db)).Methods("GET", "POST")
 
 	// Register router with http and enable cors
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, cors.AllowAll().Handler(router)))
