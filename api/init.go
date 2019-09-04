@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/spf13/viper"
 	"log"
+	"os"
 )
 
 func init() {
@@ -35,5 +36,12 @@ func init() {
 	// Validate ssl mode
 	if mode := viper.GetString("database.ssl"); mode != "disable" && mode != "allow" && mode != "prefer" && mode != "require" && mode != "verify-ca" && mode != "verify-full" {
 		log.Fatal("invalid value for ssl, must be one of: disable, allow, prefer, require, verify-ca, verify-full")
+	}
+
+	// Create directory if not exist
+	if _, err := os.Stat("./uploaded"); err != nil && os.IsNotExist(err) {
+		if err := os.Mkdir("./uploaded", os.ModePerm); err != nil {
+			log.Fatalf("Failed to create uploads directory")
+		}
 	}
 }

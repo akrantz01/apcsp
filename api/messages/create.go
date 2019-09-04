@@ -162,5 +162,5 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// Associate with chat
 	db.Model(&chat).Association("Messages").Append(&message)
 
-	util.Responses.SuccessWithData(w, viper.GetString("http.domain") + "/files/" + file.UUID + "?key=" + fileKey)
+	util.Responses.SuccessWithData(w, map[string]string{"url": viper.GetString("http.domain") + "/api/files/" + file.UUID + "?key=" + fileKey})
 }
