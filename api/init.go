@@ -13,6 +13,7 @@ func init() {
 	// Initialize configuration default
 	viper.SetDefault("http.host", "127.0.0.1")
 	viper.SetDefault("http.port", 8080)
+	viper.SetDefault("http.domain", "http://127.0.0.1:8080")
 	viper.SetDefault("database.host", "127.0.0.1")
 	viper.SetDefault("database.port", 5432)
 	viper.SetDefault("database.username", "postgres")

@@ -7,6 +7,9 @@ http:
   # What port to listen on
   # Default: 8080
   port: 8080
+  # Domain/IP where the service can be accessed
+  # Default: http://127.0.0.1:8080
+  domain: http://127.0.0.1:8080
 
 # Database connection configuration
 database:

@@ -35,6 +35,19 @@ type Message struct {
 	ChatId     uint   `json:"-"`
 	SenderId   uint   `json:"-"`
 	Sender     User   `json:"sender" gorm:"foreignkey:SenderId"`
+	Type       uint   `json:"type"`
 	Message    string `json:"message"`
+	File       *File   `json:"file" gorm:"foreignkey:FileId"`
+	FileId     uint   `json:"-"`
 	Timestamp  int64  `json:"timestamp"`
+}
+
+// Stores file information related to messages
+type File struct {
+	gorm.Model `json:"-"`
+	Path       string `json:"-"`
+	Filename   string `json:"filename"`
+	UUID       string `json:"uuid"`
+	Key        string `json:"key"`
+	Used       bool   `json:"used"`
 }
