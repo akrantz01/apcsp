@@ -21,6 +21,8 @@ tags:
     description: Chat management routes
   - name: messages
     description: Message management routes within chats
+  - name: files
+    description: File and image message types
 
 x-tagGroups:
   - name: User Management
@@ -31,6 +33,7 @@ x-tagGroups:
     tags:
       - chats
       - messages
+      - files
 
 paths:
   /api/auth/login:
@@ -1095,12 +1098,16 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  description: Message to be sent
-                  example: "Some message sent to the chat"
+              oneOf:
+                - $ref: "#/components/schemas/NormalMessage"
+                - $ref: "#/components/schemas/ImageMessage"
+                - $ref: "#/components/schemas/FileMessage"
+              discriminator:
+                propertyName: type
+                mapping:
+                  message: "#/components/schemas/NormalMessage"
+                  image: "#/components/schemas/ImageMessage"
+                  file: "#/components/schemas/FileMessage"
 
       responses:
         '200':
@@ -1108,12 +1115,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    description: current status message
-                    example: success
+                oneOf:
+                  - $ref: "#/components/schemas/GenericResponse"
+                  - $ref: "#/components/schemas/UploadResponse"
+                discriminator:
+                  mapping:
+                    "standard message": "#/components/schemas/GenericResponse"
+                    "image/file message": "#/components/schemas/UploadResponse"
         '400':
           description: bad input parameter
           content:
@@ -1409,6 +1417,154 @@ paths:
                     description: reason for failure
                     example: "specified user is not in chat"
 
+  /api/files/{file}:
+    get:
+      tags:
+        - files
+      summary: download a file/image
+      security:
+        - ApiKey: []
+      description: |
+        Download a file or image from a message in a chat
+      parameters:
+        - in: path
+
+          name: file
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: UUID of the file
+          example: d1ed2962-aef1-4bcf-a6b6-8f9836366b1f
+      responses:
+        '200':
+          description: file or image
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: path parameter 'file' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "user is not part of associated chat"
+    post:
+      tags:
+        - files
+      summary: upload a file
+      security:
+        - ApiKey: []
+      description: |
+        Upload a file to be associated with a message
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: successfully uploaded file/image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "upload link has already been used"
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to write
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "user is not part of associated chat"
+
 components:
   securitySchemes:
     ApiKey:
@@ -1433,9 +1589,94 @@ components:
       properties:
         sender:
           $ref: "#/components/schemas/User"
+        file:
+          $ref: "#/components/schemas/File"
         message:
           type: string
           example: Some sent message
         timestamp:
           type: number
           example: 1566456966279980300
+    File:
+      type: object
+      nullable: true
+      properties:
+        filename:
+          type: string
+          description: name of the file
+          example: test.jpg
+        uuid:
+          type: string
+          description: id of file
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+        used:
+          type: boolean
+          description: whether the file has been used
+          example: false
+    NormalMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          description: type of message
+          example: message
+          enum:
+            - message
+            - image
+            - file
+        message:
+          type: string
+          description: message to send
+          example: Hello
+    ImageMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          description: type of message
+          example: image
+          enum:
+            - message
+            - image
+            - file
+        message:
+          type: string
+          description: caption for message
+          example: Here is an image
+    FileMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          description: type of message
+          example: file
+          enum:
+            - message
+            - image
+            - file
+        filename:
+          type: string
+          description: name of file
+          example: somefile.doc
+    GenericResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: current status message
+          example: success
+    UploadResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: current status message
+          example: success
+        data:
+          type: object
+          description: container for generated data
+          properties:
+            url:
+              type: string
+              description: url to upload file to
+              example: http://127.0.0.1:8080/api/files/d1ed2962-aef1-4bcf-a6b6-8f9836366b1f
