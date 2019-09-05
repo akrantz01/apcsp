@@ -15,6 +15,7 @@ func init() {
 	viper.SetDefault("http.host", "127.0.0.1")
 	viper.SetDefault("http.port", 8080)
 	viper.SetDefault("http.domain", "http://127.0.0.1:8080")
+	viper.SetDefault("http.reset_files", false)
 	viper.SetDefault("database.host", "127.0.0.1")
 	viper.SetDefault("database.port", 5432)
 	viper.SetDefault("database.username", "postgres")
@@ -38,10 +39,17 @@ func init() {
 		log.Fatal("invalid value for ssl, must be one of: disable, allow, prefer, require, verify-ca, verify-full")
 	}
 
+	// Delete all uploaded files
+	if viper.GetBool("http.reset_files") {
+		if err := os.RemoveAll("./uploaded"); err != nil{
+			log.Fatalf("Failed to reset uploaded files: %v", err)
+		}
+	}
+
 	// Create directory if not exist
 	if _, err := os.Stat("./uploaded"); err != nil && os.IsNotExist(err) {
 		if err := os.Mkdir("./uploaded", os.ModePerm); err != nil {
-			log.Fatalf("Failed to create uploads directory")
+			log.Fatalf("Failed to create uploads directory: %v", err)
 		}
 	}
 }

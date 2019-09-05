@@ -10,6 +10,9 @@ http:
   # Domain/IP where the service can be accessed
   # Default: http://127.0.0.1:8080
   domain: http://127.0.0.1:8080
+  # Delete all uploaded files
+  # Default: false
+  reset_files: false
 
 # Database connection configuration
 database:
