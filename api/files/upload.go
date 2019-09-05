@@ -71,6 +71,14 @@ func post(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	// Get message associated with file
+	var message database.Message
+	db.Where("file_id = ?", file.ID).First(&message)
+	if message.ID == 0 {
+		util.Responses.Error(w, http.StatusBadRequest, "associated message was deleted")
+		return
+	}
+
 	// Set max file size
 	// 12 << 27 = 1476395088 bytes or ~ 1.47 GB
 	if err := r.ParseMultipartForm(12 << 27); err != nil {
@@ -79,10 +87,25 @@ func post(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// Retrieve  file from form
-	f, _, err := r.FormFile("file")
+	f, h, err := r.FormFile("file")
 	if err != nil {
 		util.Responses.Error(w, http.StatusBadRequest, "form ")
 		return
+	}
+
+	// Ensure proper file content type for images
+	if message.Type == database.MessageImage {
+		// Check has content type
+		if h.Header.Get("Content-Type") == "" {
+			util.Responses.Error(w, http.StatusBadRequest, "not content type provided for file")
+			return
+		}
+
+		// Ensure image
+		if !strings.HasPrefix(h.Header.Get("Content-Type"), "image/") {
+			util.Responses.Error(w, http.StatusBadRequest, "uploaded file must be an image")
+			return
+		}
 	}
 
 	// Create output file

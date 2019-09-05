@@ -2,6 +2,12 @@ package database
 
 import "github.com/jinzhu/gorm"
 
+const (
+	MessageNormal = iota
+	MessageImage = iota
+	MessageFile = iota
+)
+
 // Store user login information
 type User struct {
 	gorm.Model `json:"-"`
