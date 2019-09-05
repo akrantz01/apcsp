@@ -48,6 +48,6 @@ type File struct {
 	Path       string `json:"-"`
 	Filename   string `json:"filename"`
 	UUID       string `json:"uuid"`
-	Key        string `json:"key"`
 	Used       bool   `json:"used"`
+	ChatId     uint   `json:"-"`
 }

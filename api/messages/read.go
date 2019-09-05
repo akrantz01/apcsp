@@ -22,7 +22,7 @@ func read(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// Check if chat exists
 	var chat database.Chat
-	db.Preload("Users").Preload("Messages").Preload("Messages.Sender").Where("uuid = ?", vars["chat"]).First(&chat)
+	db.Preload("Users").Preload("Messages").Preload("Messages.Sender").Preload("Messages.File").Where("uuid = ?", vars["chat"]).First(&chat)
 	if chat.ID == 0 {
 		util.Responses.Error(w, http.StatusBadRequest, "specified chat does not exist")
 		return

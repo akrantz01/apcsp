@@ -1,10 +1,6 @@
 package messages
 
 import (
-	"crypto/rand"
-	"crypto/sha512"
-	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
@@ -111,19 +107,6 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	// Generate key
-	rawFileKey := make([]byte, 32)
-	if _, err := rand.Read(rawFileKey); err != nil {
-		util.Responses.Error(w, http.StatusInternalServerError, "failed to generate upload key")
-		return
-	}
-	fileKey := base64.URLEncoding.EncodeToString(rawFileKey)
-
-	// Hash download key for storage
-	h := sha512.New()
-	h.Write(rawFileKey)
-	hashedFileKey := hex.EncodeToString(h.Sum(nil))
-
 	// Remove file name if image
 	if body.Type == "image" {
 		body.Filename = ""
@@ -135,8 +118,8 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		Path: "./uploaded/" + id,
 		Filename: body.Filename,
 		UUID: id,
-		Key: hashedFileKey,
 		Used: false,
+		ChatId: chat.ID,
 	}
 	db.NewRecord(file)
 	db.Create(&file)
@@ -162,5 +145,5 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// Associate with chat
 	db.Model(&chat).Association("Messages").Append(&message)
 
-	util.Responses.SuccessWithData(w, map[string]string{"url": viper.GetString("http.domain") + "/api/files/" + file.UUID + "?key=" + fileKey})
+	util.Responses.SuccessWithData(w, map[string]string{"url": viper.GetString("http.domain") + "/api/files/" + file.UUID})
 }

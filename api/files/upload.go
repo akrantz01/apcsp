@@ -1,9 +1,6 @@
 package files
 
 import (
-	"crypto/sha512"
-	"encoding/base64"
-	"encoding/hex"
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
 	"github.com/gorilla/mux"
@@ -20,9 +17,6 @@ func post(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if _, ok := vars["file"]; !ok {
 		util.Responses.Error(w, http.StatusBadRequest, "path parameter 'file' must be present")
 		return
-	} else if r.URL.Query().Get("key") == "" {
-		util.Responses.Error(w, http.StatusUnauthorized, "query parameter 'key' must be present")
-		return
 	} else if strings.Split(r.Header.Get("Content-Type"), ";")[0] != "multipart/form-data" {
 		util.Responses.Error(w, http.StatusBadRequest, "header 'Content-Type' must be 'multipart/form-data'")
 		return
@@ -36,21 +30,38 @@ func post(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	// Validate key
-	keyBytes, err := base64.URLEncoding.DecodeString(r.URL.Query().Get("key"))
-	if err != nil {
-		util.Responses.Error(w, http.StatusBadRequest, "failed to decode key")
+	// Ensure chat exists
+	var chat database.Chat
+	db.Preload("Users").Where("id = ?", file.ChatId).First(&chat)
+	if chat.ID == 0 {
+		util.Responses.Error(w, http.StatusBadRequest, "associated chat was deleted")
 		return
 	}
 
-	// Hash for comparison
-	h := sha512.New()
-	h.Write(keyBytes)
-	hashed := hex.EncodeToString(h.Sum(nil))
+	// Get token w/o validation
+	token, err := util.JWT.Unvalidated(r.Header.Get("Authorization"))
+	if err != nil {
+		util.Responses.Error(w, http.StatusInternalServerError, "failed to get token parts")
+		return
+	}
 
-	// Compare
-	if hashed != file.Key {
-		util.Responses.Error(w, http.StatusUnauthorized, "invalid upload key")
+	// Get user id from token
+	uid, err := util.JWT.UserId(token)
+	if err != nil {
+		util.Responses.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Ensure user is in chat
+	valid := false
+	for _, user := range chat.Users {
+		if uid == user.ID {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		util.Responses.Error(w, http.StatusForbidden, "user is not part of associated chat")
 		return
 	}
 
