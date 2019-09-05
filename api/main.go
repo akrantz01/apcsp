@@ -5,6 +5,7 @@ import (
 	"github.com/akrantz01/apcsp/api/authentication"
 	"github.com/akrantz01/apcsp/api/chats"
 	"github.com/akrantz01/apcsp/api/database"
+	"github.com/akrantz01/apcsp/api/files"
 	"github.com/akrantz01/apcsp/api/messages"
 	"github.com/akrantz01/apcsp/api/users"
 	"github.com/gorilla/handlers"
@@ -50,6 +51,9 @@ func main() {
 	// Messages routes
 	api.HandleFunc("/chats/{chat}/messages", messages.AllMessages(db)).Methods("GET", "POST")
 	api.HandleFunc("/chats/{chat}/messages/{message}", messages.SpecificMessage(db)).Methods("GET", "PUT", "DELETE")
+
+	// Files routes
+	api.HandleFunc("/files/{file}", files.Files(db)).Methods("GET", "POST")
 
 	// Register router with http and enable cors
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, cors.AllowAll().Handler(router)))
