@@ -44,7 +44,7 @@ func init() {
 
 	// Delete all uploaded files
 	if viper.GetBool("http.reset_files") {
-		if err := os.RemoveAll("./uploaded"); err != nil{
+		if err := os.RemoveAll("./uploaded"); err != nil {
 			log.Fatalf("Failed to reset uploaded files: %v", err)
 		}
 	}
@@ -63,7 +63,7 @@ func init() {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	} else if format == "text" {
 		logrus.SetFormatter(&logrus.TextFormatter{
-			FullTimestamp: true,
+			FullTimestamp:          true,
 			DisableLevelTruncation: true,
 		})
 	}

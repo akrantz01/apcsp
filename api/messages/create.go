@@ -63,8 +63,8 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// Validate JSON body
 	var body struct {
-		Type    string `json:"type"`
-		Message string `json:"message"`
+		Type     string `json:"type"`
+		Message  string `json:"message"`
 		Filename string `json:"filename"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -91,10 +91,10 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if body.Type == "message" {
 		// Save message
 		message := database.Message{
-			ChatId: chat.ID,
-			SenderId: uid,
-			Type: 0,
-			Message: body.Message,
+			ChatId:    chat.ID,
+			SenderId:  uid,
+			Type:      0,
+			Message:   body.Message,
 			Timestamp: time.Now().UnixNano(),
 		}
 		db.NewRecord(message)
@@ -115,22 +115,22 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// Create file upload link
 	id := uuid.NewV4().String()
 	file := database.File{
-		Path: "./uploaded/" + id,
+		Path:     "./uploaded/" + id,
 		Filename: body.Filename,
-		UUID: id,
-		Used: false,
-		ChatId: chat.ID,
+		UUID:     id,
+		Used:     false,
+		ChatId:   chat.ID,
 	}
 	db.NewRecord(file)
 	db.Create(&file)
 
 	// Create message database entry
 	message := database.Message{
-		ChatId: chat.ID,
-		SenderId: uid,
-		Type: 1,
-		Message: body.Message,
-		FileId: file.ID,
+		ChatId:    chat.ID,
+		SenderId:  uid,
+		Type:      1,
+		Message:   body.Message,
+		FileId:    file.ID,
 		Timestamp: time.Now().UnixNano(),
 	}
 	if body.Type == "file" {

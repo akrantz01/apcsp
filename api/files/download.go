@@ -92,7 +92,7 @@ func get(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// Write headers
 	w.Header().Set("Content-Type", http.DetectContentType(header))
 	w.Header().Set("Content-Length", strconv.FormatInt(stat.Size(), 10))
-	w.Header().Set("Content-Disposition", "attachment; filename=" + file.Filename)
+	w.Header().Set("Content-Disposition", "attachment; filename="+file.Filename)
 	w.WriteHeader(http.StatusOK)
 
 	// Reset read head
