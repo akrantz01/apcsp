@@ -8,6 +8,14 @@ import (
 )
 
 func init() {
+	// Set default log config
+	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		DisableTimestamp:       false,
+		FullTimestamp:          true,
+		DisableLevelTruncation: true,
+	})
+
 	// Setup configuration file
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
@@ -17,7 +25,7 @@ func init() {
 	viper.SetDefault("http.port", 8080)
 	viper.SetDefault("http.domain", "http://127.0.0.1:8080")
 	viper.SetDefault("http.reset_files", false)
-	viper.SetDefault("logging.format", "json")
+	viper.SetDefault("logging.format", "text")
 	viper.SetDefault("logging.level", "info")
 	viper.SetDefault("database.host", "127.0.0.1")
 	viper.SetDefault("database.port", 5432)
@@ -31,38 +39,42 @@ func init() {
 	if err := viper.ReadInConfig(); err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
-			log.Fatalf("Configuration file not found")
+			logrus.WithField("app", "initialization").WithError(err).Fatal("Configuration file not found")
 		default:
-			log.Fatalf("Failed to parse configuration file: %s", err)
+			logrus.WithField("app", "initialization").WithError(err).Fatal("Failed to parse configuration file")
 		}
 	}
 
 	// Validate ssl mode
 	if mode := viper.GetString("database.ssl"); mode != "disable" && mode != "allow" && mode != "prefer" && mode != "require" && mode != "verify-ca" && mode != "verify-full" {
-		log.Fatal("invalid value for ssl, must be one of: disable, allow, prefer, require, verify-ca, verify-full")
+		logrus.WithFields(logrus.Fields{"app": "initialization", "key": "database.ssl", "value": viper.GetString("database.ssl"), "options": []string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"}}).Fatal("Invalid value for database ssl mode")
 	}
 
 	// Delete all uploaded files
 	if viper.GetBool("http.reset_files") {
 		if err := os.RemoveAll("./uploaded"); err != nil {
-			log.Fatalf("Failed to reset uploaded files: %v", err)
+			logrus.WithError(err).WithFields(logrus.Fields{"app": "initialization", "key": "http.reset_files"}).Fatal("Failed to reset uploaded files")
 		}
 	}
 
 	// Create directory if not exist
-	if _, err := os.Stat("./uploaded"); err != nil && os.IsNotExist(err) {
+	if _, err := os.Stat("./uploaded"); os.IsNotExist(err) {
 		if err := os.Mkdir("./uploaded", os.ModePerm); err != nil {
-			log.Fatalf("Failed to create uploads directory: %v", err)
+			log.Printf("Failed to create uploads directory: %v", err)
+			logrus.WithField("app", "initialization").WithError(err).Fatal("Failed to create uploads directory")
 		}
+	} else if err != nil {
+		logrus.WithField("app", "initialization").WithError(err).Fatal("Failed to stat uploads directory")
 	}
 
 	// Validate and set log format
 	if format := viper.GetString("logging.format"); format != "text" && format != "json" {
-		log.Fatalf("Invalid format '%s' for log output format, must be one of: text, json", format)
+		logrus.WithFields(logrus.Fields{"app": "initialization", "key": "logging.format", "value": format, "options": []string{"text", "json"}}).Fatal("Invalid output format specified")
 	} else if format == "json" {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	} else if format == "text" {
 		logrus.SetFormatter(&logrus.TextFormatter{
+			DisableTimestamp:       false,
 			FullTimestamp:          true,
 			DisableLevelTruncation: true,
 		})
@@ -85,6 +97,6 @@ func init() {
 	case "panic":
 		logrus.SetLevel(logrus.PanicLevel)
 	default:
-		log.Fatalf("Invalid level '%s' for minimum log level, must be one of: trace, debug, info, warn, error, fatal, panic", viper.GetString("logging.level"))
+		logrus.WithFields(logrus.Fields{"app": "initialization", "key": "logging.level", "value": viper.GetString("logging.level"), "options": []string{"trace", "debug", "info", "warn", "error", "fatal", "panic"}}).Fatal("Invalid level for minimum log level")
 	}
 }

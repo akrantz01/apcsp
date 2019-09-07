@@ -18,8 +18,8 @@ http:
 logging:
   # Format to output logs in
   # Options: json, text
-  # Default: json
-  format: json
+  # Default: text
+  format: text
   # Set minimum level to log
   # Options: trace, debug, info, warn, error, fatal, panic
   # Default: info
