@@ -11,8 +11,8 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -72,12 +72,12 @@ func main() {
 
 	// Start http server
 	go func() {
-		log.Printf("API listening on %s:%s...", viper.GetString("http.host"), viper.GetString("http.port"))
+		logrus.WithFields(logrus.Fields{"app": "http-server", "host": viper.GetString("http.host"), "port": viper.GetInt("http.port")}).Info("Starting API listener...")
 		if err := server.ListenAndServe(); err != nil {
 			if strings.Contains(err.Error(), "Server closed") {
 				return
 			}
-			log.Fatalf("failure while running server: %s", err)
+			logrus.WithError(err).WithField("app", "http-server").Fatal("Failure while server was running")
 		}
 	}()
 
@@ -92,6 +92,7 @@ func main() {
 
 	// Shutdown the server gracefully
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Failed to shutdown server: %v", err)
+		logrus.WithError(err).WithField("app", "http-server").Fatal("Failed to shutdown server")
 	}
+	logrus.WithField("app", "http-server").Info("Gracefully shutdown API listener")
 }
