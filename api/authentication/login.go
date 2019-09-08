@@ -43,7 +43,7 @@ func Login(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 			util.Responses.Error(w, http.StatusBadRequest, "unable to decode JSON: "+err.Error())
 			return
 		} else if body.Username == "" || body.Password == "" {
-			logger.WithFields(logrus.Fields{"username": len(body.Username), "password": len(body.Password)}).Trace("Username or password not given")
+			logger.WithFields(logrus.Fields{"username": body.Username, "password": len(body.Password)}).Trace("Field username or password not given")
 			util.Responses.Error(w, http.StatusBadRequest, "fields 'username' and 'password' are required")
 			return
 		} else if len(body.Password) != 64 {
