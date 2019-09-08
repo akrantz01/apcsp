@@ -7,20 +7,23 @@ import (
 	"net/http"
 )
 
-var logger = logrus.WithField("app", "middleware")
-
 // Handle authentication for all endpoints
 func authMiddleware(db *gorm.DB) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			logger := logrus.WithField("app", "middleware")
+
 			// Set remote address to X-Forwarded-For or CF-Connecting-IP if available
 			if r.Header.Get("CF-Connecting-IP") != "" {
 				r.RemoteAddr = r.Header.Get("CF-Connecting-IP")
-				logger.WithField("remote-address", r.RemoteAddr).Trace("Setting CF-Connecting-IP to remote address")
+				logger.WithField("remote_address", r.RemoteAddr).Trace("Setting CF-Connecting-IP to remote address")
 			} else if r.Header.Get("X-Forwarded-For") != "" {
 				r.RemoteAddr = r.Header.Get("X-Forwarded-For")
-				logger.WithField("remote-address", r.RemoteAddr).Trace("Setting X-Forwarded-For to remote address")
+				logger.WithField("remote_address", r.RemoteAddr).Trace("Setting X-Forwarded-For to remote address")
 			}
+
+			// Add remote address to logger
+			logger = logrus.WithFields(logrus.Fields{"app": "middleware", "remote_address": r.RemoteAddr})
 
 			// Allow if authenticating
 			if r.RequestURI == "/api/auth/login" || (r.RequestURI == "/api/users" && r.Method == "POST") {
