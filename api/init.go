@@ -9,6 +9,7 @@ import (
 func init() {
 	// Set default log config
 	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetReportCaller(false)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp:       false,
 		FullTimestamp:          true,
@@ -27,6 +28,7 @@ func init() {
 	viper.SetDefault("http.domain", "http://127.0.0.1:8080")
 	viper.SetDefault("http.reset_files", false)
 	viper.SetDefault("logging.format", "text")
+	viper.SetDefault("logging.report_caller", false)
 	viper.SetDefault("logging.level", "info")
 	viper.SetDefault("database.host", "127.0.0.1")
 	viper.SetDefault("database.port", 5432)
@@ -109,4 +111,10 @@ func init() {
 		logrus.WithFields(logrus.Fields{"app": "initialization", "key": "logging.level", "value": viper.GetString("logging.level"), "options": []string{"trace", "debug", "info", "warn", "error", "fatal", "panic"}}).Fatal("Invalid level for minimum log level")
 	}
 	logrus.WithField("app", "initialization").Tracef("Set minimum log level to %s", viper.GetString("logging.level"))
+
+	// Set reporting caller
+	if viper.GetBool("logging.report_caller") {
+		logrus.SetReportCaller(viper.GetBool("logging.report_caller"))
+		logrus.WithField("app", "initialization").Trace("Enabled caller reporting")
+	}
 }
