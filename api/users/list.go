@@ -9,7 +9,7 @@ import (
 )
 
 func list(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	logger := logrus.WithFields(logrus.Fields{"app": "users", "remote_addr": r.RemoteAddr, "path": "/api/users", "method": "GET"})
+	logger := logrus.WithFields(logrus.Fields{"app": "users", "remote_address": r.RemoteAddr, "path": "/api/users", "method": "GET"})
 
 	// Validate initial request on query parameters
 	if len(r.URL.RawQuery) == 0 || r.URL.Query().Get("username") == "" {

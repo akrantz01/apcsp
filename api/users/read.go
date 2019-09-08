@@ -10,7 +10,7 @@ import (
 )
 
 func read(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	logger := logrus.WithFields(logrus.Fields{"app": "users", "remote_addr": r.RemoteAddr, "path": "/api/users/{user}", "method": "GET"})
+	logger := logrus.WithFields(logrus.Fields{"app": "users", "remote_address": r.RemoteAddr, "path": "/api/users/{user}", "method": "GET"})
 
 	// Validate initial request on path parameters
 	vars := mux.Vars(r)

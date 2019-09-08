@@ -11,7 +11,7 @@ import (
 )
 
 func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	logger := logrus.WithFields(logrus.Fields{"app": "users", "remote_addr": r.RemoteAddr, "path": "/api/users", "method": "POST"})
+	logger := logrus.WithFields(logrus.Fields{"app": "users", "remote_address": r.RemoteAddr, "path": "/api/users", "method": "POST"})
 
 	// Validate initial request on Content-Type header and body
 	if r.Header.Get("Content-Type") != "application/json" {
