@@ -6,6 +6,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"reflect"
 )
 
 var logger = logrus.WithField("app", "database")
@@ -26,14 +27,17 @@ func SetupDatabase() *gorm.DB {
 		if viper.GetBool("database.reset") {
 			db.DropTableIfExists(model)
 			db.CreateTable(model)
+			logger.WithField("model", reflect.TypeOf(model).Name()).Trace("Dropped model if it existed and re-created in database")
 		} else if !db.HasTable(model) {
 			db.CreateTable(model)
+			logger.WithField("model", reflect.TypeOf(model).Name()).Trace("Created model in database")
 		}
 	}
 	logger.Info("Successfully built database schema if nonexistent")
 
 	// Enable struct preloading (for relationships)
 	db.Set("gorm:auto_preload", true)
+	logger.Trace("Enable automatically preloading table relationships")
 
 	return db
 }
