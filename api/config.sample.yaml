@@ -14,6 +14,17 @@ http:
   # Default: false
   reset_files: false
 
+# Logging configuration
+logging:
+  # Format to output logs in
+  # Options: json, text
+  # Default: text
+  format: text
+  # Set minimum level to log
+  # Options: trace, debug, info, warn, error, fatal, panic
+  # Default: info
+  level: info
+
 # Database connection configuration
 database:
   # Address where the PostgreSQL server is running

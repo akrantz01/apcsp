@@ -4,8 +4,8 @@ import "github.com/jinzhu/gorm"
 
 const (
 	MessageNormal = iota
-	MessageImage = iota
-	MessageFile = iota
+	MessageImage  = iota
+	MessageFile   = iota
 )
 
 // Store user login information
@@ -43,7 +43,7 @@ type Message struct {
 	Sender     User   `json:"sender" gorm:"foreignkey:SenderId"`
 	Type       uint   `json:"type"`
 	Message    string `json:"message"`
-	File       *File   `json:"file" gorm:"foreignkey:FileId"`
+	File       *File  `json:"file" gorm:"foreignkey:FileId"`
 	FileId     uint   `json:"-"`
 	Timestamp  int64  `json:"timestamp"`
 }
