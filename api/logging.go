@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"
+	"strings"
 )
 
 type loggingHandler struct {
@@ -13,6 +14,15 @@ type loggingHandler struct {
 }
 
 func (h loggingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Set remote address to X-Forwarded-For or CF-Connecting-IP if available
+	if r.Header.Get("CF-Connecting-IP") != "" {
+		r.RemoteAddr = r.Header.Get("CF-Connecting-IP")
+	} else if r.Header.Get("X-Forwarded-For") != "" {
+		r.RemoteAddr = r.Header.Get("X-Forwarded-For")
+	} else {
+		r.RemoteAddr = strings.Split(r.RemoteAddr, ":")[0]
+	}
+
 	// Add logging facilities to response writer
 	logger := makeLogger(w)
 
