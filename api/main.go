@@ -8,7 +8,6 @@ import (
 	"github.com/akrantz01/apcsp/api/files"
 	"github.com/akrantz01/apcsp/api/messages"
 	"github.com/akrantz01/apcsp/api/users"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
@@ -66,7 +65,7 @@ func main() {
 	logger.Trace("Add file management routes")
 
 	// Register router with http and enable cors
-	http.Handle("/", handlers.LoggingHandler(os.Stdout, cors.AllowAll().Handler(router)))
+	http.Handle("/", loggingHandler{handler: cors.AllowAll().Handler(router)})
 	logger.Trace("Register router with http handler")
 
 	// Wait for OS shutdown signals
