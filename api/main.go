@@ -42,27 +42,27 @@ func main() {
 	logger.Trace("Initialized API subrouter")
 
 	// Authentication routes
-	api.HandleFunc("/auth/login", authentication.Login(db)).Methods("POST")
-	api.HandleFunc("/auth/logout", authentication.Logout(db)).Methods("GET")
+	api.HandleFunc("/auth/login", authentication.Login(db))
+	api.HandleFunc("/auth/logout", authentication.Logout(db))
 	logger.Trace("Add authentication routes")
 
 	// User routes
-	api.HandleFunc("/users", users.AllUsers(db)).Methods("GET", "POST")
-	api.HandleFunc("/users/{user}", users.SpecificUser(db)).Methods("GET", "PUT", "DELETE")
+	api.HandleFunc("/users", users.AllUsers(db))
+	api.HandleFunc("/users/{user}", users.SpecificUser(db))
 	logger.Trace("Add user management routes")
 
 	// Chat routes
-	api.HandleFunc("/chats", chats.AllChats(db)).Methods("GET", "POST")
-	api.HandleFunc("/chats/{chat}", chats.SpecificChat(db)).Methods("GET", "DELETE")
+	api.HandleFunc("/chats", chats.AllChats(db))
+	api.HandleFunc("/chats/{chat}", chats.SpecificChat(db))
 	logger.Trace("Add chat management routes")
 
 	// Messages routes
-	api.HandleFunc("/chats/{chat}/messages", messages.AllMessages(db)).Methods("GET", "POST")
-	api.HandleFunc("/chats/{chat}/messages/{message}", messages.SpecificMessage(db)).Methods("GET", "PUT", "DELETE")
+	api.HandleFunc("/chats/{chat}/messages", messages.AllMessages(db))
+	api.HandleFunc("/chats/{chat}/messages/{message}", messages.SpecificMessage(db))
 	logger.Trace("Add chat message management routes")
 
 	// Files routes
-	api.HandleFunc("/files/{file}", files.Files(db)).Methods("GET", "POST")
+	api.HandleFunc("/files/{file}", files.Files(db))
 	logger.Trace("Add file management routes")
 
 	// Register router with http and enable cors
