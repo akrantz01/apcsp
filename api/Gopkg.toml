@@ -50,10 +50,6 @@
   version = "1.7.3"
 
 [[constraint]]
-  name = "github.com/gorilla/handlers"
-  version = "1.4.2"
-
-[[constraint]]
   name = "github.com/spf13/viper"
   version = "1.4.0"
 
