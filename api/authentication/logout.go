@@ -11,7 +11,7 @@ import (
 // Revoke authentication tokens
 func Logout(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_addr": r.RemoteAddr, "path": "/api/auth/logout", "method": "GET"})
+		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_address": r.RemoteAddr, "path": "/api/auth/logout", "method": "GET"})
 
 		// Get token w/o validation
 		token, err := util.JWT.Unvalidated(r.Header.Get("Authorization"))

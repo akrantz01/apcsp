@@ -20,7 +20,7 @@ const tokenExpiration = 60 * 60 * 24 * 3
 // Generate authentication tokens for users given a username and password
 func Login(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_addr": r.RemoteAddr, "path": "/api/auth/login", "method": "POST"})
+		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_address": r.RemoteAddr, "path": "/api/auth/login", "method": "POST"})
 
 		// Validate initial request on Content-Type header and body
 		if r.Header.Get("Content-Type") != "application/json" {
