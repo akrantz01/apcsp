@@ -19,7 +19,7 @@ func deleteMethod(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		util.Responses.Error(w, http.StatusBadRequest, "path parameter 'user' must be present")
 		return
 	}
-	logger.WithField("user", vars["user"]).Trace("Validated initial request on path parameters")
+	logger.WithField("user", vars["user"]).Trace("Validated initial request")
 
 	// Add username to logger
 	logger = logger.WithField("user", vars["user"])

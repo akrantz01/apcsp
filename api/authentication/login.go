@@ -32,6 +32,7 @@ func Login(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 			util.Responses.Error(w, http.StatusBadRequest, "request body must exist")
 			return
 		}
+		logger.Trace("Validated initial request")
 
 		// Validate JSON body
 		var body struct {

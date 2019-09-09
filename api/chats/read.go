@@ -37,7 +37,7 @@ func read(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// Get token w/o validation
 	token, err := util.JWT.Unvalidated(r.Header.Get("Authorization"))
 	if err != nil {
-		logger.WithError(err).Trace("Unable to get unvalidated token")
+		logger.WithError(err).Error("Unable to get unvalidated token")
 		util.Responses.Error(w, http.StatusInternalServerError, "failed to get token parts")
 		return
 	}
