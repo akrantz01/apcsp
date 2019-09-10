@@ -110,12 +110,15 @@ func (c *Client) readPump() {
 		case MessageAuthentication:
 			if authenticated {
 				c.logger.Trace("User attempted to re-authenticated")
+				c.send <- []byte(`{"status": "error", "reason": "already authenticated"}`)
 				continue
 			}
 
 			c.logger.Trace("New authentication message")
 			var message AuthenticationMessage
 			if err := json.Unmarshal(rawMsg, &message); err != nil {
+				c.send <- []byte(`{"status": "error", "reason": "fatal error, please check logs"}`)
+				time.Sleep(2 * time.Second) // Wait a bit for failure message to send before dying
 				c.logger.WithError(err).Fatal("Failed to parse json for authentication message. THIS SHOULD NEVER HAPPEN")
 				return
 			}
