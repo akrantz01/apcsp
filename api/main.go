@@ -66,7 +66,7 @@ func main() {
 	logger.Trace("Add chat message management routes")
 
 	// Files routes
-	api.HandleFunc("/files/{file}", files.Files(db))
+	api.HandleFunc("/files/{file}", files.Files(hub, db))
 	logger.Trace("Add file management routes")
 
 	// Websocket routes
