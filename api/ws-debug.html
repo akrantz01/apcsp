@@ -32,7 +32,8 @@
             if (resp.hasOwnProperty("type")) {
                 switch (resp.type) {
                     case 0:
-                        console.error("Server not allowed to send message of type 0");
+                    case 2:
+                        console.error(`Server not allowed to send message of type ${resp.type}`);
                         break;
 
                     case 1:
@@ -45,7 +46,7 @@
                 }
             } else if (resp.status === "success") {
                 document.getElementById("send").disabled = false;
-                document.getElementById("log").innerHTML += `<p>Operation finished successfully${(resp.data) ? ", data: " : ""}${(resp.data) ? resp.data : ""}</p>`;
+                document.getElementById("log").innerHTML += `<p>Operation finished successfully${(resp.data) ? ", data: " : ""}${(resp.data) ? JSON.stringify(resp.data) : ""}</p>`;
             } else document.getElementById("log").innerHTML += `<p>Error: ${resp.reason}</p>`;
         };
         ws.onerror = function(e) {

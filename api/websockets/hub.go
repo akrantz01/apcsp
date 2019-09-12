@@ -87,8 +87,8 @@ func (h *Hub) PushMessage(receiver string, message database.Message, chat string
 	}
 
 	// Assemble client message
-	msg := NewMessage{
-		Type:        MessageNewMessage,
+	msg := ReceiveMessage{
+		Type:        MessageReceive,
 		Message:     message.Message,
 		Chat:        chat,
 		Sender:      message.Sender.Username,

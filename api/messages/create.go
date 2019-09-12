@@ -74,7 +74,7 @@ func create(w http.ResponseWriter, r *http.Request, hub *websockets.Hub, db *gor
 		}
 	}
 	if !valid {
-		logger.WithField("uid", uid).Trace("User associated with token in chat")
+		logger.WithField("uid", uid).Trace("User associated with token not in chat")
 		util.Responses.Error(w, http.StatusForbidden, "user is not part of specified chat")
 		return
 	}

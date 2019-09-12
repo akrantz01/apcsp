@@ -6,7 +6,9 @@ import (
 	"github.com/akrantz01/apcsp/api/util"
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
+	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"net/http"
 	"time"
 )
@@ -165,9 +167,149 @@ func (c *Client) readPump() {
 			c.send <- []byte(`{"status": "success"}`)
 			c.logger.Debug("Authenticated websocket client")
 
-		case MessageNewMessage:
+		case MessageReceive:
 			c.send <- []byte(`{"status": "error", "reason": "client cannot send message type"}`)
 			c.logger.WithField("type", typeMessage.Type).Trace("Client cannot send specified message type to server")
+
+		case MessageSent:
+			c.logger.WithField("type", typeMessage.Type).Trace("New message sent to chat")
+
+			var message SentMessage
+			if err := json.Unmarshal(rawMsg, &message); err != nil {
+				c.send <- []byte(`{"status": "error", "reason": "fatal error, please check logs"}`)
+				time.Sleep(2 * time.Second)
+				c.logger.WithError(err).Fatal("Failed to parse json for sent message. THIS SHOULD NEVER HAPPEN")
+			}
+
+			// Ensure chat exists
+			var chat database.Chat
+			c.db.Preload("Users").Where("uuid = ?", message.Chat).First(&chat)
+			if chat.ID == 0 {
+				c.logger.WithField("chat", message.Chat).Trace("Specified chat does not exist")
+				c.send <- []byte(`{"status": "error", "reason": "specified chat does not exist"}`)
+				continue
+			}
+			c.logger.WithField("chat", message.Chat).Trace("Retrieved chat information from database")
+
+			// Ensure user is in chat
+			valid := false
+			for _, u := range chat.Users {
+				if user.ID == u.ID {
+					valid = true
+					break
+				}
+			}
+			if !valid {
+				c.logger.Trace("User associated with token not in chat")
+				c.send <- []byte(`{"status": "error", "reason": "user is not part of specified chat"}`)
+				continue
+			}
+			c.logger.Trace("Confirmed requesting user in chat")
+
+			// Validate body
+			if message.ContentType == "" {
+				c.logger.WithFields(logrus.Fields{"type": message.ContentType, "chat": chat.UUID}).Trace("Field type not given")
+				c.send <- []byte(`{"status": "error", "reason": "field 'type' is required"}`)
+				continue
+			} else if message.ContentType != "message" && message.ContentType != "image" && message.ContentType != "file" {
+				c.logger.WithFields(logrus.Fields{"type": message.ContentType, "chat": chat.UUID}).Trace("Invalid type for 'type' field")
+				c.send <- []byte(`{"status": "error", "reason": "invalid type for 'type' field"}`)
+				continue
+			} else if message.ContentType == "message" && message.Message == "" {
+				c.logger.WithFields(logrus.Fields{"chat": chat.UUID, "type": message.ContentType, "message": message.Message}).Trace("Message field must be present when type is 'message'")
+				c.send <- []byte(`{"status": "error", "reason": "field 'message' must be present"}`)
+				continue
+			} else if message.ContentType == "image" && message.Filename != "" {
+				c.logger.WithFields(logrus.Fields{"chat": chat.UUID, "type": message.ContentType, "filename": message.Filename}).Trace("Filename field not be present when type is 'filename'")
+				c.send <- []byte(`{"status": "error", "reason": "field 'filename' should be empty or nonexistent"}`)
+				continue
+			} else if message.ContentType == "file" && message.Filename == "" {
+				c.logger.WithFields(logrus.Fields{"chat": chat.UUID, "type": message.ContentType, "filename": message.Filename}).Trace("Filename filed must be present when type is 'filename'")
+				c.send <- []byte(`{"status": "error", "reason": "field 'filename' must be present"}`)
+				continue
+			}
+
+			// Normal message
+			if message.ContentType == "message" {
+				// Save message
+				chatMessage := database.Message{
+					ChatId:    chat.ID,
+					SenderId:  user.ID,
+					Type:      0,
+					Message:   message.Message,
+					Timestamp: time.Now().UnixNano(),
+				}
+				c.db.NewRecord(chatMessage)
+				c.db.Create(&chatMessage)
+				c.logger.WithField("chat", chat.UUID).Trace("Added message to database")
+
+				// Associate with chat
+				c.db.Model(&chat).Association("Messages").Append(&chatMessage)
+				c.logger.WithField("chat", chat.UUID).Trace("Associated message with chat")
+
+				// Push message over websockets
+				chatMessage.Sender = user
+				for _, u := range chat.Users {
+					// Ignore sending user
+					if user.ID == u.ID {
+						continue
+					}
+
+					// Send message
+					c.hub.PushMessage(u.Username, chatMessage, chat.UUID)
+				}
+
+				c.send <- []byte(`{"status": "success"}`)
+				c.logger.WithFields(logrus.Fields{"message": chatMessage.ID, "sender": user.ID, "chat": chat.UUID}).Debug("Sent given message to chat")
+				continue
+			}
+
+			// Remove file name if image
+			if message.ContentType == "image" {
+				message.Filename = ""
+				c.logger.WithFields(logrus.Fields{"type": message.ContentType, "chat": chat.UUID}).Trace("Removed filename for image message")
+			}
+
+			// Create file upload link
+			id := uuid.NewV4().String()
+			file := database.File{
+				Path:     "./uploaded/" + id,
+				Filename: message.Filename,
+				UUID:     id,
+				Used:     false,
+				ChatId:   chat.ID,
+			}
+			c.db.NewRecord(file)
+			c.db.Create(&file)
+			c.logger.WithFields(logrus.Fields{"file": file.UUID, "chat": chat.UUID}).Trace("Created file link for message")
+
+			// Create message database entry
+			chatMessage := database.Message{
+				ChatId:    chat.ID,
+				SenderId:  user.ID,
+				Type:      1,
+				Message:   message.Message,
+				FileId:    file.ID,
+				Timestamp: time.Now().UnixNano(),
+			}
+			if message.ContentType == "file" {
+				chatMessage.Message = ""
+				chatMessage.Type = 2
+				c.logger.WithFields(logrus.Fields{"type": message.ContentType, "chat": chat.UUID}).Trace("Change file type and empty message for file")
+			}
+			c.logger.WithFields(logrus.Fields{"file": file.UUID, "chat": chat.UUID}).Trace("Created message with file id")
+
+			// Save to database
+			c.db.NewRecord(chatMessage)
+			c.db.Create(&chatMessage)
+			c.logger.WithField("chat", chat.UUID).Trace("Saved message to database")
+
+			// Associate with chat
+			c.db.Model(&chat).Association("Messages").Append(&chatMessage)
+			c.logger.WithField("chat", chat.UUID).Trace("Associated message with chat")
+
+			c.send <- []byte(`{"status": "success", "data": {"url": "` + viper.GetString("http.domain") + "/api/files" + file.UUID + `"}}`)
+			c.logger.WithFields(logrus.Fields{"message": chatMessage.ID, "sender": chatMessage.SenderId, "file": file.UUID, "chat": chat.UUID}).Debug("Created message with file upload link attached")
 
 		default:
 			c.send <- []byte(`{"status": "error", "reason": "invalid message type"}`)
