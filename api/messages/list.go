@@ -93,7 +93,7 @@ func list(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	endIndex := perPage + (page * perPage)
 	if endIndex > int64(len(chat.Messages)) {
 		logger.Trace("Specified page out of bounds, defaulting to length of messages")
-		endIndex = int64(len(chat.Messages) - 1)
+		endIndex = int64(len(chat.Messages))
 	}
 	logger.WithField("end", endIndex).Trace("Set end index for messages")
 
