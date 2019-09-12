@@ -61,7 +61,7 @@ func main() {
 	logger.Trace("Add chat management routes")
 
 	// Messages routes
-	api.HandleFunc("/chats/{chat}/messages", messages.AllMessages(db))
+	api.HandleFunc("/chats/{chat}/messages", messages.AllMessages(hub, db))
 	api.HandleFunc("/chats/{chat}/messages/{message}", messages.SpecificMessage(db))
 	logger.Trace("Add chat message management routes")
 

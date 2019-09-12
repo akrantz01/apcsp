@@ -51,9 +51,14 @@ type Client struct {
 // ensures that there is at most one reader on a connection by executing all
 // reads from this goroutine
 func (c *Client) readPump() {
+	// Session variables
+	authenticated := false
+	var user database.User
+
 	// Close connection and remove from hub
 	defer func() {
 		c.hub.unregister <- c
+		c.hub.mapping.Delete(user.Username, c.conn.RemoteAddr().String())
 		if err := c.conn.Close(); err != nil {
 			c.logger.WithError(err).Error("Failed to close websocket connection")
 		}
@@ -70,10 +75,6 @@ func (c *Client) readPump() {
 		}
 		return nil
 	})
-
-	// Session variables
-	authenticated := false
-	var user database.User
 
 	for {
 		// Read message from connection
@@ -158,8 +159,15 @@ func (c *Client) readPump() {
 			authenticated = true
 			c.logger.Trace("Set connection as authenticated")
 
+			// Register with hub
+			c.hub.mapping.Add(user.Username, c)
+
 			c.send <- []byte(`{"status": "success"}`)
 			c.logger.Debug("Authenticated websocket client")
+
+		case MessageNewMessage:
+			c.send <- []byte(`{"status": "error", "reason": "client cannot send message type"}`)
+			c.logger.WithField("type", typeMessage.Type).Trace("Client cannot send specified message type to server")
 
 		default:
 			c.send <- []byte(`{"status": "error", "reason": "invalid message type"}`)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
+	"github.com/akrantz01/apcsp/api/websockets"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
@@ -13,7 +14,7 @@ import (
 	"time"
 )
 
-func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+func create(w http.ResponseWriter, r *http.Request, hub *websockets.Hub, db *gorm.DB) {
 	logger := logrus.WithFields(logrus.Fields{"app": "messages", "remote_address": r.RemoteAddr, "path": "/api/chats/{chat}/messages", "method": "POST"})
 
 	// Validate initial request on headers, path parameters, and body
@@ -64,10 +65,15 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 	logger.WithField("uid", uid).Trace("Got user id from token")
 
+	// Get sender data by id
+	var sender database.User
+	db.Where("id = ?", uid).First(&sender)
+	logger.Trace("Retrieved sender info from database")
+
 	// Ensure user is in chat
 	valid := false
-	for _, chat := range chat.Users {
-		if uid == chat.ID {
+	for _, user := range chat.Users {
+		if uid == user.ID {
 			valid = true
 			break
 		}
@@ -132,6 +138,18 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		db.Model(&chat).Association("Messages").Append(&message)
 		logger.Trace("Associate message with chat")
 
+		// Push the message over websockets
+		message.Sender = sender
+		for _, user := range chat.Users {
+			// Ignore sending user
+			if user.ID == uid {
+				continue
+			}
+
+			// Send message
+			hub.PushMessage(user.Username, message, vars["chat"])
+		}
+
 		util.Responses.Success(w)
 		logger.WithFields(logrus.Fields{"message": message.ID, "sender": message.SenderId}).Debug("Sent given message to chat")
 		return
@@ -180,6 +198,18 @@ func create(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// Associate with chat
 	db.Model(&chat).Association("Messages").Append(&message)
 	logger.Trace("Associate message with chat")
+
+	// Push the message over websockets
+	message.Sender = sender
+	for _, user := range chat.Users {
+		// Ignore sending user
+		if user.ID == uid {
+			continue
+		}
+
+		// Send message
+		hub.PushMessage(user.Username, message, vars["chat"])
+	}
 
 	util.Responses.SuccessWithData(w, map[string]string{"url": viper.GetString("http.domain") + "/api/files/" + file.UUID})
 	logger.WithFields(logrus.Fields{"message": message.ID, "sender": message.SenderId, "file": file.UUID}).Debug("Created message with file upload link attached")
