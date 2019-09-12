@@ -65,11 +65,6 @@ func create(w http.ResponseWriter, r *http.Request, hub *websockets.Hub, db *gor
 	}
 	logger.WithField("uid", uid).Trace("Got user id from token")
 
-	// Get sender data by id
-	var sender database.User
-	db.Where("id = ?", uid).First(&sender)
-	logger.Trace("Retrieved sender info from database")
-
 	// Ensure user is in chat
 	valid := false
 	for _, user := range chat.Users {
@@ -122,6 +117,11 @@ func create(w http.ResponseWriter, r *http.Request, hub *websockets.Hub, db *gor
 
 	// Normal message
 	if body.Type == "message" {
+		// Get sender data by id
+		var sender database.User
+		db.Where("id = ?", uid).First(&sender)
+		logger.Trace("Retrieved sender info from database")
+
 		// Save message
 		message := database.Message{
 			ChatId:    chat.ID,
@@ -198,18 +198,6 @@ func create(w http.ResponseWriter, r *http.Request, hub *websockets.Hub, db *gor
 	// Associate with chat
 	db.Model(&chat).Association("Messages").Append(&message)
 	logger.Trace("Associate message with chat")
-
-	// Push the message over websockets
-	message.Sender = sender
-	for _, user := range chat.Users {
-		// Ignore sending user
-		if user.ID == uid {
-			continue
-		}
-
-		// Send message
-		hub.PushMessage(user.Username, message, vars["chat"])
-	}
 
 	util.Responses.SuccessWithData(w, map[string]string{"url": viper.GetString("http.domain") + "/api/files/" + file.UUID})
 	logger.WithFields(logrus.Fields{"message": message.ID, "sender": message.SenderId, "file": file.UUID}).Debug("Created message with file upload link attached")
