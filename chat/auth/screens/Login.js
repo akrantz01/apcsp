@@ -1,13 +1,5 @@
 import React, {Component} from 'react';
-import {
-    View,
-    StyleSheet,
-    Button,
-    StatusBar,
-    Text,
-    Keyboard,
-    TouchableWithoutFeedback,
-} from 'react-native';
+import {View, StyleSheet, Button, StatusBar, Text, Keyboard, TouchableWithoutFeedback} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import {Input} from 'react-native-elements';
 import LinearGradient from 'react-native-linear-gradient';
@@ -22,48 +14,41 @@ export class Login extends Component {
 
     render() {
         return (
-            <TouchableWithoutFeedback
-                onPress={Keyboard.dismiss}
-                accessible={false}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={styles.view}>
                     <StatusBar barStyle={'light-content'} />
-                    <LinearGradient
-                        colors={['#0a49bf', '#182a4d']}
-                        style={styles.background}>
+                    <LinearGradient colors={['#0a49bf', '#182a4d']} style={styles.background}>
                         <KeyboardAwareScrollView scrollEnabled={false}>
                             <Text style={styles.text}>Login</Text>
                             <View style={styles.card}>
                                 <Input
                                     placeholder={'Username'}
                                     placeholderTextColor={'#BBB'}
-                                    inputStyle={{color: 'white'}}
+                                    inputStyle={styles.insideText}
+                                    onChangeText={value => this.setState({username: value})}
                                 />
                                 <View style={styles.spacer} />
                                 <Input
                                     placeholder={'Password'}
                                     placeholderTextColor={'#BBB'}
                                     secureTextEntry={true}
-                                    inputStyle={{color: 'white'}}
+                                    inputStyle={styles.insideText}
+                                    onChangeText={value => this.setState({password: value})}
                                 />
-                                <NButton
-                                    style={styles.button}
-                                    title="Authenticate"
-                                    onPress={this._signInAsync}>
+                                <NButton style={styles.button} title="Go" onPress={() => this._signInAsync()}>
                                     <LinearGradient
                                         start={{x: 0, y: 0}}
                                         end={{x: 1, y: 0}}
                                         colors={['#FF512F', '#F09819']}
                                         style={styles.buttonGrad}>
-                                        <Text style={styles.buttonText}>
-                                            Go
-                                        </Text>
+                                        <Text style={styles.buttonText}>Go</Text>
                                     </LinearGradient>
                                 </NButton>
                             </View>
                             <Button
                                 title="Don't have an account?"
                                 color={'#FFFFFF'}
-                                onPress={this._signUpAsync}
+                                onPress={() => this.props.navigation.navigate('Signup')}
                             />
                         </KeyboardAwareScrollView>
                     </LinearGradient>
@@ -71,14 +56,19 @@ export class Login extends Component {
             </TouchableWithoutFeedback>
         );
     }
-    _signUpAsync = async () => {
-        this.props.navigation.navigate('Signup');
-    };
 
-    _signInAsync = async () => {
-        await AsyncStorage.setItem('userToken', 'abc');
+    async _signInAsync() {
+        // sha256(this.state.password).then(hash => {
+        //     console.log('hash', hash);
+        //     APIService.login(this.state.username, hash).then(res => {
+        //         console.log('response', res);
+        //         AsyncStorage.setItem('authToken', res);
+        //         this.props.navigation.navigate('App');
+        //     });
+        // });
+        AsyncStorage.setItem('authToken', 'abc');
         this.props.navigation.navigate('App');
-    };
+    }
 }
 
 const styles = StyleSheet.create({
@@ -97,6 +87,9 @@ const styles = StyleSheet.create({
         fontSize: 40,
         color: '#FFFFFF',
         fontWeight: '800',
+    },
+    insideText: {
+        color: 'white',
     },
     card: {
         borderRadius: 12,

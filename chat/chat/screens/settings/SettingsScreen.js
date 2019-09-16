@@ -1,16 +1,10 @@
 import React from 'react';
 import {Component} from 'react';
-import {
-    View,
-    StatusBar,
-    TouchableOpacity,
-    Text,
-    StyleSheet,
-    ScrollView,
-} from 'react-native';
+import {View, StatusBar, TouchableOpacity, Text, StyleSheet, ScrollView} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
 import {Icon} from 'react-native-elements';
+import {APIService} from '../../../APIService';
 
 export class SettingsScreen extends Component {
     static navigationOptions = {
@@ -20,21 +14,11 @@ export class SettingsScreen extends Component {
 
     render() {
         return (
-            <LinearGradient colors={['#00af3a', '#005baf']}>
-                <View
-                    style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '100%',
-                    }}>
-                    <StatusBar barStyle={'dark-content'} />
+            <LinearGradient colors={['#00af3a', '#005baf']} style={styles.background}>
+                <View maxWidth={600} style={styles.topView}>
+                    <StatusBar barStyle={'light-content'} />
                     <Text style={styles.title}>Settings</Text>
-                    <ScrollView
-                        style={{
-                            position: 'relative',
-                            width: '100%',
-                            height: '100%',
-                        }}>
+                    <ScrollView style={styles.scrollView}>
                         <Card
                             text={'Back'}
                             textColor={'#444444'}
@@ -42,14 +26,71 @@ export class SettingsScreen extends Component {
                             iconType={'feather'}
                             iconColor={'#444444'}
                             showArrow={false}
+                            height={50}
                             onPress={() =>
                                 this.props.navigation.dispatch({
                                     type: 'Navigation/BACK',
                                 })
                             }
                         />
-                        <View style={{height: 30}} />
-                        <View style={{height: 30}} />
+                        <View style={styles.spacer} />
+                        <Card
+                            text={'Name'}
+                            textColor={'#444444'}
+                            iconName={'user'}
+                            iconType={'feather'}
+                            iconColor={'#444444'}
+                            showArrow={true}
+                            height={70}
+                            onPress={() =>
+                                this.props.navigation.navigate('Edit', {
+                                    name: 'Name',
+                                })
+                            }
+                        />
+                        <Card
+                            text={'Avatar'}
+                            textColor={'#444444'}
+                            iconName={'image'}
+                            iconType={'feather'}
+                            iconColor={'#444444'}
+                            showArrow={true}
+                            height={70}
+                            onPress={() =>
+                                this.props.navigation.navigate('Edit', {
+                                    name: 'Avatar',
+                                })
+                            }
+                        />
+                        <Card
+                            text={'Email'}
+                            textColor={'#444444'}
+                            iconName={'at-sign'}
+                            iconType={'feather'}
+                            iconColor={'#444444'}
+                            showArrow={true}
+                            height={70}
+                            onPress={() =>
+                                this.props.navigation.navigate('Edit', {
+                                    name: 'Email Address',
+                                })
+                            }
+                        />
+                        <Card
+                            text={'Password'}
+                            textColor={'#444444'}
+                            iconName={'key'}
+                            iconType={'feather'}
+                            iconColor={'#444444'}
+                            showArrow={true}
+                            height={70}
+                            onPress={() =>
+                                this.props.navigation.navigate('Edit', {
+                                    name: 'Password',
+                                })
+                            }
+                        />
+                        <View style={styles.spacer} />
                         <Card
                             text={'Sign Out'}
                             textColor={'#ff4444'}
@@ -57,16 +98,11 @@ export class SettingsScreen extends Component {
                             iconType={'feather'}
                             iconColor={'#ff4444'}
                             showArrow={false}
+                            height={50}
                             onPress={() => this._signOutAsync()}
                         />
-                        <View
-                            style={{
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                paddingTop: 10,
-                                paddingBottom: 10,
-                            }}>
-                            <Text style={{color: '#bbbbbb'}}>v0.0.1</Text>
+                        <View style={styles.versionContainer}>
+                            <Text style={styles.versionText}>v0.0.1 alpha</Text>
                         </View>
                     </ScrollView>
                 </View>
@@ -75,56 +111,30 @@ export class SettingsScreen extends Component {
     }
 
     async _signOutAsync() {
-        await AsyncStorage.clear();
+        await APIService.logout().then(AsyncStorage.clear());
         this.props.navigation.navigate('Auth');
     }
 }
 
-class Card extends Component {
+export class Card extends Component {
     render() {
         return (
             <TouchableOpacity onPress={() => this.props.onPress()}>
-                <View style={styles.card}>
+                <View style={[styles.card, {height: this.props.height}]}>
                     <LinearGradient
                         start={{x: 0, y: 0}}
                         end={{x: 1, y: 0}}
                         colors={['#ffffff', '#dddddd']}
-                        style={styles.grad}>
-                        <View
-                            style={{
-                                position: 'absolute',
-                                left: 10,
-                            }}>
-                            <Icon
-                                name={this.props.iconName}
-                                type={this.props.iconType}
-                                color={this.props.iconColor}
-                            />
+                        style={[styles.grad, {height: this.props.height}]}>
+                        <View style={styles.cardIcon}>
+                            <Icon name={this.props.iconName} type={this.props.iconType} color={this.props.iconColor} />
                         </View>
-                        <View
-                            style={{
-                                position: 'absolute',
-                                left: 50,
-                            }}>
-                            <Text
-                                style={[
-                                    styles.text,
-                                    {color: this.props.textColor},
-                                ]}>
-                                {this.props.text}
-                            </Text>
+                        <View style={styles.cardText}>
+                            <Text style={[styles.text, {color: this.props.textColor}]}>{this.props.text}</Text>
                         </View>
-                        <View
-                            style={{
-                                position: 'absolute',
-                                right: 10,
-                            }}>
+                        <View style={styles.cardArrow}>
                             {this.props.showArrow ? (
-                                <Icon
-                                    name={'chevron-right'}
-                                    color={'#444444'}
-                                    type={'feather'}
-                                />
+                                <Icon name={'chevron-right'} color={'#444444'} type={'feather'} />
                             ) : null}
                         </View>
                     </LinearGradient>
@@ -134,14 +144,31 @@ class Card extends Component {
     }
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
     title: {
         marginLeft: 20,
-        marginTop: 60,
+        marginTop: 0,
         marginBottom: 10,
         fontSize: 40,
         color: '#ffffff',
         fontWeight: '800',
+    },
+    topView: {
+        position: 'relative',
+        width: '100%',
+        height: '108%',
+        flex: 1,
+    },
+    scrollView: {
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+    },
+    background: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingTop: '15%',
     },
     card: {
         marginLeft: 20,
@@ -165,16 +192,37 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    cardText: {
-        padding: 10,
-        position: 'relative',
-        right: 0,
-        top: 0,
-        bottom: 0,
-        left: 70,
-    },
     text: {
         fontSize: 20,
         fontWeight: '600',
+    },
+    container: {
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+    },
+    spacer: {
+        height: 20,
+    },
+    versionContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 10,
+        paddingBottom: 10,
+    },
+    versionText: {
+        color: '#bbbbbb',
+    },
+    cardIcon: {
+        position: 'absolute',
+        left: 20,
+    },
+    cardText: {
+        position: 'absolute',
+        left: 60,
+    },
+    cardArrow: {
+        position: 'absolute',
+        right: 10,
     },
 });
