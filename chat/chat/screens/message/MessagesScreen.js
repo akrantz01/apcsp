@@ -39,7 +39,7 @@ export default class MessagesScreen extends Component {
         // });
     }
 
-    static getData() {
+    getData() {
         return [
             {data: [{key: 0, name: 'Alex Beaver', unread: true}]},
             {data: [{key: 1, name: 'Alex Krantz', unread: true}]},
