@@ -8,6 +8,7 @@ import (
 	"github.com/akrantz01/apcsp/api/files"
 	"github.com/akrantz01/apcsp/api/messages"
 	"github.com/akrantz01/apcsp/api/users"
+	"github.com/akrantz01/apcsp/api/websockets"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
@@ -27,6 +28,10 @@ func main() {
 
 	// Connect to the database
 	db := database.SetupDatabase()
+
+	// Create websocket hub
+	hub := websockets.NewHub()
+	logger.Trace("Created websocket hub for connection management")
 
 	// Setup routes
 	router := mux.NewRouter()
@@ -56,13 +61,17 @@ func main() {
 	logger.Trace("Add chat management routes")
 
 	// Messages routes
-	api.HandleFunc("/chats/{chat}/messages", messages.AllMessages(db))
+	api.HandleFunc("/chats/{chat}/messages", messages.AllMessages(hub, db))
 	api.HandleFunc("/chats/{chat}/messages/{message}", messages.SpecificMessage(db))
 	logger.Trace("Add chat message management routes")
 
 	// Files routes
-	api.HandleFunc("/files/{file}", files.Files(db))
+	api.HandleFunc("/files/{file}", files.Files(hub, db))
 	logger.Trace("Add file management routes")
+
+	// Websocket routes
+	api.HandleFunc("/ws", websockets.Websockets(hub, db))
+	logger.Trace("Add websocket routes")
 
 	// Register router with http and enable cors
 	http.Handle("/", loggingHandler{handler: cors.AllowAll().Handler(router)})
@@ -80,6 +89,10 @@ func main() {
 		IdleTimeout:  time.Second * 60,
 		Handler:      nil,
 	}
+
+	// Start websocket server
+	go hub.Run()
+	logger.Trace("Started websocket server in separate goroutine")
 
 	// Start http server
 	go func() {

@@ -3,6 +3,7 @@ package files
 import (
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
+	"github.com/akrantz01/apcsp/api/websockets"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -12,7 +13,7 @@ import (
 	"strings"
 )
 
-func post(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+func post(w http.ResponseWriter, r *http.Request, hub *websockets.Hub, db *gorm.DB) {
 	logger := logrus.WithFields(logrus.Fields{"app": "files", "remote_address": r.RemoteAddr, "path": "/api/files/{file}", "method": "POST"})
 
 	// Validate initial request on headers, path parameters and form
@@ -92,7 +93,7 @@ func post(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// Get message associated with file
 	var message database.Message
-	db.Where("file_id = ?", file.ID).First(&message)
+	db.Preload("Sender").Where("file_id = ?", file.ID).First(&message)
 	if message.ID == 0 {
 		logger.Trace("Message associated with file was deleted")
 		util.Responses.Error(w, http.StatusBadRequest, "associated message was deleted")
@@ -158,6 +159,17 @@ func post(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	file.Used = true
 	db.Save(&file)
 	logger.Trace("Set file as already uploaded")
+
+	// Push the message over websockets
+	for _, user := range chat.Users {
+		// Ignore sending user
+		if user.ID == uid {
+			continue
+		}
+
+		// Send message
+		hub.PushMessage(user.Username, message, chat.UUID)
+	}
 
 	util.Responses.Success(w)
 	logger.Debug("Uploaded specified file for message")

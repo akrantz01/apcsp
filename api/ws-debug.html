@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Tester</title>
+</head>
+<body>
+    <h1>WebSocket Tester</h1>
+    <hr>
+    <p>Log:</p>
+    <div id="log"></div>
+    <hr>
+    <label for="token">Authentication Token: </label>
+    <input type="text" id="token"/>
+    <button id="authenticate" disabled>Authenticate</button><br>
+    <label for="command">Command: </label>
+    <input type="text" id="command" placeholder="In JSON format"/>
+    <button id="send" disabled>Send Command</button>
+    <script type="application/javascript">
+        let ws = new WebSocket("ws://127.0.0.1:8080/api/ws");
+        ws.onopen = function() {
+            document.getElementById("authenticate").disabled = false;
+        };
+        ws.onmessage = function(e) {
+            let resp;
+            try {
+                resp = JSON.parse(e.data);
+            } catch(err) {
+                console.log(e.data);
+                console.error(err);
+            }
+            if (resp.hasOwnProperty("type")) {
+                switch (resp.type) {
+                    case 0:
+                    case 2:
+                        console.error(`Server not allowed to send message of type ${resp.type}`);
+                        break;
+
+                    case 1:
+                        document.getElementById("log").innerHTML += `<p><b>New Message:</b><br>&#9;From: ${resp.sender}<br>&#9;Chat ID: ${resp.chat}<br>&#9;Message: ${resp.message}<br>&#9;Content Type: ${resp['content-type']}</p>`;
+                        break;
+
+                    default:
+                        console.error(`Unknown message type ${resp.type}`);
+                        break;
+                }
+            } else if (resp.status === "success") {
+                document.getElementById("send").disabled = false;
+                document.getElementById("log").innerHTML += `<p>Operation finished successfully${(resp.data) ? ", data: " : ""}${(resp.data) ? JSON.stringify(resp.data) : ""}</p>`;
+            } else document.getElementById("log").innerHTML += `<p>Error: ${resp.reason}</p>`;
+        };
+        ws.onerror = function(e) {
+            console.error(e);
+        };
+
+        document.getElementById("authenticate").onclick = function() {
+            ws.send(JSON.stringify({
+                "type": 0,
+                "token": document.getElementById("token").value
+            }));
+        };
+        document.getElementById("send").onclick = function() {
+            ws.send(document.getElementById("command").value);
+        };
+    </script>
+</body>
+</html>
