@@ -1,2 +1,5 @@
 **/.idea/
 **/secrets
+api/uploaded
+api/vendor
+api/config.yaml
