@@ -49,6 +49,7 @@ func init() {
 	if err := viper.ReadInConfig(); err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
+		case *os.PathError:
 			logrus.WithField("app", "initialization").Info("Configuration file not found, continuing with defaults and environment variables")
 		default:
 			logrus.WithField("app", "initialization").WithError(err).Fatal("Failed to parse configuration file")
