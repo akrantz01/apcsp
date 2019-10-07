@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
+	"strings"
 )
 
 func init() {
@@ -39,16 +40,21 @@ func init() {
 	viper.SetDefault("database.reset", false)
 	logrus.WithField("app", "initialization").Trace("Set defaults for configuration keys")
 
+	// Allow loading config from environment variables
+	viper.SetEnvPrefix("chat")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+
 	// Parse configuration file
 	if err := viper.ReadInConfig(); err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
-			logrus.WithField("app", "initialization").WithError(err).Fatal("Configuration file not found")
+		case *os.PathError:
+			logrus.WithField("app", "initialization").Info("Configuration file not found, continuing with defaults and environment variables")
 		default:
 			logrus.WithField("app", "initialization").WithError(err).Fatal("Failed to parse configuration file")
 		}
 	}
-	logrus.WithField("app", "initialization").Trace("Successfully parsed configuration file")
 
 	// Validate ssl mode
 	if mode := viper.GetString("database.ssl"); mode != "disable" && mode != "allow" && mode != "prefer" && mode != "require" && mode != "verify-ca" && mode != "verify-full" {
