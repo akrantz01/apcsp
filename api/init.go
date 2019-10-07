@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
+	"strings"
 )
 
 func init() {
@@ -38,6 +39,11 @@ func init() {
 	viper.SetDefault("database.ssl", "disable")
 	viper.SetDefault("database.reset", false)
 	logrus.WithField("app", "initialization").Trace("Set defaults for configuration keys")
+
+	// Allow loading config from environment variables
+	viper.SetEnvPrefix("chat")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 
 	// Parse configuration file
 	if err := viper.ReadInConfig(); err != nil {
