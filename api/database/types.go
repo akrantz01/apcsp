@@ -4,8 +4,13 @@ import "github.com/jinzhu/gorm"
 
 const (
 	MessageNormal = iota
-	MessageImage  = iota
-	MessageFile   = iota
+	MessageImage
+	MessageFile
+)
+
+const (
+	TokenAuthentication = iota
+	TokenResetPassword
 )
 
 // Store user login information
@@ -22,6 +27,7 @@ type User struct {
 type Token struct {
 	gorm.Model
 	SigningKey string
+	Type       uint
 	UserId     uint
 	User       User
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -32,7 +33,7 @@ func authMiddleware(db *gorm.DB) func(next http.Handler) http.Handler {
 			logger.Trace("Ensured authentication header is present")
 
 			// Validate JWT
-			_, err := util.JWT.Validate(r.Header.Get("Authorization"), db)
+			_, err := util.JWT.Validate(r.Header.Get("Authorization"), database.TokenAuthentication, db)
 			if err != nil {
 				util.Responses.Error(w, http.StatusUnauthorized, "invalid token: "+err.Error())
 				return

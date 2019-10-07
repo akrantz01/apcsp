@@ -96,6 +96,7 @@ func Login(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 		storedToken := database.Token{
 			SigningKey: base64.StdEncoding.EncodeToString(signingKey),
 			UserId:     user.ID,
+			Type:       database.TokenAuthentication,
 		}
 		db.NewRecord(storedToken)
 		db.Create(&storedToken)

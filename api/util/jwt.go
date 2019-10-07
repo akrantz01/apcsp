@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/dgrijalva/jwt-go"
@@ -17,7 +18,7 @@ type jwtClass struct{}
 var jwtLogger = logrus.WithField("app", "jwt")
 
 // Validate an authentication token given the signed string.
-func (j jwtClass) Validate(tokenString string, db *gorm.DB) (*jwt.Token, error) {
+func (j jwtClass) Validate(tokenString string, tokenType int, db *gorm.DB) (*jwt.Token, error) {
 	// Retrieve token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (i interface{}, e error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -37,6 +38,11 @@ func (j jwtClass) Validate(tokenString string, db *gorm.DB) (*jwt.Token, error) 
 			return nil, fmt.Errorf("unable to find signing key for token: %v", token.Header["kid"])
 		}
 		jwtLogger.WithField("key_id", token.Header["kid"]).Trace("Retrieved token signing key from database")
+
+		// Ensure token is of proper type
+		if t.Type != uint(tokenType) {
+			return nil, errors.New("invalid token type")
+		}
 
 		// Decode signing key
 		signingKey, err := base64.StdEncoding.DecodeString(t.SigningKey)
