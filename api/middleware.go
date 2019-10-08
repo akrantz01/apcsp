@@ -33,8 +33,14 @@ func authMiddleware(db *gorm.DB) func(next http.Handler) http.Handler {
 			}
 			logger.Trace("Ensured authentication header is present")
 
+			// Select token type
+			tokenType := database.TokenAuthentication
+			if strings.Index(r.RequestURI, "/api/auth/reset-password") == 0 {
+				tokenType = database.TokenResetPassword
+			}
+
 			// Validate JWT
-			_, err := util.JWT.Validate(r.Header.Get("Authorization"), database.TokenAuthentication, db)
+			_, err := util.JWT.Validate(r.Header.Get("Authorization"), tokenType, db)
 			if err != nil {
 				util.Responses.Error(w, http.StatusUnauthorized, "invalid token: "+err.Error())
 				return
