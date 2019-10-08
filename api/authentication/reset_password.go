@@ -14,7 +14,13 @@ import (
 	"net/http"
 )
 
-func ResetPassword(db *gorm.DB, mail chan *gomail.Message, resetNotificationTemplate *template.Template) func(w http.ResponseWriter, r *http.Request) {
+func ResetPassword(db *gorm.DB, mail chan *gomail.Message) func(w http.ResponseWriter, r *http.Request) {
+	// Load email templates
+	resetNotificationTemplate, err := template.ParseFiles("templates/reset-notification.tmpl")
+	if err != nil {
+		logrus.WithError(err).Fatal("Unable to load reset notification template")
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_address": r.RemoteAddr, "path": "/api/auth/reset-password", "method": "POST"})
 

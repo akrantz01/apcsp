@@ -14,7 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
-	"html/template"
 	"net/http"
 	"os"
 	"os/signal"
@@ -28,16 +27,6 @@ var mail = make(chan *gomail.Message)
 
 func main() {
 	logger := logrus.WithField("app", "main")
-
-	// Load email templates
-	resetPasswordTemplate, err := template.ParseFiles("templates/reset-password.tmpl")
-	if err != nil {
-		logger.WithError(err).Fatal("Unable to load reset password template")
-	}
-	resetNotificationTemplate, err := template.ParseFiles("templates/reset-notification.tmpl")
-	if err != nil {
-		logger.WithError(err).Fatal("Unable to load reset notification template")
-	}
 
 	// Connect to the database
 	db := database.SetupDatabase()
@@ -61,8 +50,8 @@ func main() {
 	// Authentication routes
 	api.HandleFunc("/auth/login", authentication.Login(db))
 	api.HandleFunc("/auth/logout", authentication.Logout(db))
-	api.HandleFunc("/auth/forgot-password", authentication.ForgotPassword(db, mail, resetPasswordTemplate))
-	api.HandleFunc("/auth/reset-password", authentication.ResetPassword(db, mail, resetNotificationTemplate))
+	api.HandleFunc("/auth/forgot-password", authentication.ForgotPassword(db, mail))
+	api.HandleFunc("/auth/reset-password", authentication.ResetPassword(db, mail))
 	logger.Trace("Add authentication routes")
 
 	// User routes

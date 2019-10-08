@@ -17,7 +17,13 @@ import (
 	"time"
 )
 
-func ForgotPassword(db *gorm.DB, mail chan *gomail.Message, resetPasswordTemplate *template.Template) func(w http.ResponseWriter, r *http.Request) {
+func ForgotPassword(db *gorm.DB, mail chan *gomail.Message) func(w http.ResponseWriter, r *http.Request) {
+	// Load email templates
+	resetPasswordTemplate, err := template.ParseFiles("templates/reset-password.tmpl")
+	if err != nil {
+		logrus.WithError(err).Fatal("Unable to load reset password template")
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_address": r.RemoteAddr, "path": "/api/auth/forgot-password", "method": "GET"})
 
