@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
@@ -20,46 +19,31 @@ import (
 
 func ForgotPassword(db *gorm.DB, mail chan *gomail.Message, resetPasswordTemplate *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_address": r.RemoteAddr, "path": "/api/auth/forgot-password", "method": "POST"})
+		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_address": r.RemoteAddr, "path": "/api/auth/forgot-password", "method": "GET"})
 
-		// Validate initial request on Content-Type header and body
-		if r.Header.Get("Content-Type") != "application/json" {
-			logger.WithField("content_type", r.Header.Get("Content-Type")).Trace("Invalid content type")
-			util.Responses.Error(w, http.StatusBadRequest, "header 'Content-Type' must be 'application/json'")
+		// Validate request on method and query parameters
+		if r.Method != http.MethodGet {
+			logger.WithField("method", r.Method).Trace("Invalid request method")
+			util.Responses.Error(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
-		} else if r.Body == nil {
-			logger.Trace("No request body given")
-			util.Responses.Error(w, http.StatusBadRequest, "request body must exist")
-			return
-		}
-		logger.Trace("Validated initial request")
-
-		// Validate JSON body
-		var body struct {
-			Username string `json:"username"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			logger.WithError(err).Trace("Invalid json body")
-			util.Responses.Error(w, http.StatusBadRequest, "unable to decode JSON: "+err.Error())
-			return
-		} else if body.Username == "" {
-			logger.WithField("username", body.Username).Trace("Field username not given")
-			util.Responses.Error(w, http.StatusBadRequest, "field 'username' is required")
+		} else if len(r.URL.RawQuery) == 0 || r.URL.Query().Get("username") == "" {
+			logger.WithField("username", r.URL.Query().Get("username")).Trace("Invalid query parameter")
+			util.Responses.Error(w, http.StatusBadRequest, "query parameter 'username' is required")
 			return
 		}
-		logger.Trace("Validated JSON body")
+		logger.Trace("Validated request")
 
 		// Check if user exists
 		var user database.User
-		db.Where("username = ?", body.Username).First(&user)
+		db.Where("username = ?", r.URL.Query().Get("username")).First(&user)
 		if user.ID == 0 {
-			logger.WithField("username", body.Username).Trace("User not found in database")
+			logger.WithField("username", r.URL.Query().Get("username")).Trace("User not found in database")
 			util.Responses.Error(w, http.StatusBadRequest, "specified user does not exist")
 			return
 		}
 
 		// Add username to logger
-		logger = logger.WithField("username", body.Username)
+		logger = logger.WithField("username", user.Username)
 
 		// Create signing key for JWT
 		signingKey := make([]byte, 128)
