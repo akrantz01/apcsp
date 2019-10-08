@@ -127,7 +127,7 @@ func (c *Client) readPump() {
 			}
 
 			// Validate JWT
-			token, err := util.JWT.Validate(message.Token, c.db)
+			token, err := util.JWT.Validate(message.Token, database.TokenAuthentication, c.db)
 			if err != nil {
 				c.logger.WithError(err).Trace("Failed to validate authentication token")
 				c.send <- []byte(`{"status": "error", "reason": "invalid token:` + err.Error() + `"}`)

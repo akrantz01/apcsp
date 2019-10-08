@@ -13,6 +13,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"gopkg.in/gomail.v2"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,6 +23,7 @@ import (
 )
 
 var shutdown = make(chan os.Signal, 1)
+var mail = make(chan *gomail.Message)
 
 func main() {
 	logger := logrus.WithField("app", "main")
@@ -48,10 +50,13 @@ func main() {
 	// Authentication routes
 	api.HandleFunc("/auth/login", authentication.Login(db))
 	api.HandleFunc("/auth/logout", authentication.Logout(db))
+	api.HandleFunc("/auth/forgot-password", authentication.ForgotPassword(db, mail))
+	api.HandleFunc("/auth/reset-password", authentication.ResetPassword(db, mail))
+	api.HandleFunc("/auth/verify-email", authentication.VerifyEmail(db))
 	logger.Trace("Add authentication routes")
 
 	// User routes
-	api.HandleFunc("/users", users.AllUsers(db))
+	api.HandleFunc("/users", users.AllUsers(db, mail))
 	api.HandleFunc("/users/{user}", users.SpecificUser(db))
 	logger.Trace("Add user management routes")
 
@@ -73,6 +78,11 @@ func main() {
 	api.HandleFunc("/ws", websockets.Websockets(hub, db))
 	logger.Trace("Add websocket routes")
 
+	// Add static HTML routes
+	router.HandleFunc("/reset-password", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "static/reset-password.html")
+	})
+
 	// Register router with http and enable cors
 	http.Handle("/", loggingHandler{handler: cors.AllowAll().Handler(router)})
 	logger.Trace("Register router with http handler")
@@ -89,6 +99,69 @@ func main() {
 		IdleTimeout:  time.Second * 60,
 		Handler:      nil,
 	}
+
+	// Start mail daemon
+	go func() {
+		logger := logrus.WithField("app", "mailer")
+
+		// Initialize mail server connector
+		d := gomail.NewPlainDialer(viper.GetString("email.host"), viper.GetInt("email.port"), viper.GetString("email.username"), viper.GetString("email.password"))
+		d.SSL = viper.GetBool("email.ssl")
+		logger.Trace("Configured dialer")
+
+		// Connect and create writer
+		logger.WithFields(logrus.Fields{"host": viper.GetString("email.host"), "port": viper.GetInt("email.port"), "ssl": viper.GetBool("email.ssl")}).Info("Connecting to email server...")
+		var s gomail.SendCloser
+		var err error
+		if s, err = d.Dial(); err != nil {
+			logrus.WithError(err).Fatal("Failed to connect to email server")
+		}
+		logger.Info("Successfully connected to email server")
+
+		open := true
+
+		logger.Trace("Started mail handling loop")
+		for {
+			select {
+			// Wait for mail
+			case m, ok := <-mail:
+				if !ok {
+					logger.Trace("Invalid message received")
+					return
+				}
+				logger.Trace("Got new message to send")
+
+				// Connect if not open
+				if !open {
+					logger.Trace("Sender not open, opening...")
+					if s, err = d.Dial(); err != nil {
+						logrus.WithError(err).Fatal("Failed to re-connect to email server")
+					}
+					open = true
+					logger.Trace("Successfully re-connected to mail server")
+				}
+				logger.Trace("Ensured sender connection was open")
+
+				// Send the message
+				logger.Trace("Sending message...")
+				if err := gomail.Send(s, m); err != nil {
+					logger.WithError(err).Error("Failed to send email")
+				}
+				logger.Trace("Message sent successfully")
+
+			// Close connection after 4 seconds (fixes error with Amazon SES)
+			case <-time.After(4 * time.Second):
+				if open {
+					logger.Trace("Connection open for more than 4 seconds, closing")
+					if err := s.Close(); err != nil {
+						logger.WithError(err).Fatal("Failed to close mail server connection")
+					}
+					open = false
+					logger.Trace("Successfully closed sender")
+				}
+			}
+		}
+	}()
 
 	// Start websocket server
 	go hub.Run()
