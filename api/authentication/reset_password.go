@@ -1,16 +1,20 @@
 package authentication
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"gopkg.in/gomail.v2"
 	"gopkg.in/hlandau/passlib.v1"
+	"html/template"
 	"net/http"
 )
 
-func ResetPassword(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
+func ResetPassword(db *gorm.DB, mail chan *gomail.Message, resetNotificationTemplate *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := logrus.WithFields(logrus.Fields{"app": "authentication", "remote_address": r.RemoteAddr, "path": "/api/auth/reset-password", "method": "POST"})
 
@@ -79,6 +83,22 @@ func ResetPassword(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 		// Revoke token
 		db.Delete(database.Token{}, "id = ?", token.Header["kid"])
 		logger.Trace("Deleted associated signing key")
+
+		// Render template to string
+		stringBuffer := bytes.NewBuffer([]byte{})
+		if err := resetNotificationTemplate.Execute(stringBuffer, map[string]string{"name": user.Name}); err != nil {
+			logger.WithError(err).Error("Unable to render template")
+			util.Responses.Error(w, http.StatusInternalServerError, "failed to generate email")
+			return
+		}
+
+		// Assemble and send email
+		m := gomail.NewMessage()
+		m.SetHeader("From", viper.GetString("email.sender"))
+		m.SetHeader("To", user.Email)
+		m.SetHeader("Subject", "Chat App - Your Password was Reset")
+		m.SetBody("text/html", stringBuffer.String())
+		mail <- m
 
 		util.Responses.Success(w)
 		logger.Debug("Reset user's password")

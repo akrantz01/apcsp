@@ -34,6 +34,10 @@ func main() {
 	if err != nil {
 		logger.WithError(err).Fatal("Unable to load reset password template")
 	}
+	resetNotificationTemplate, err := template.ParseFiles("templates/reset-notification.tmpl")
+	if err != nil {
+		logger.WithError(err).Fatal("Unable to load reset notification template")
+	}
 
 	// Connect to the database
 	db := database.SetupDatabase()
@@ -58,7 +62,7 @@ func main() {
 	api.HandleFunc("/auth/login", authentication.Login(db))
 	api.HandleFunc("/auth/logout", authentication.Logout(db))
 	api.HandleFunc("/auth/forgot-password", authentication.ForgotPassword(db, mail, resetPasswordTemplate))
-	api.HandleFunc("/auth/reset-password", authentication.ResetPassword(db))
+	api.HandleFunc("/auth/reset-password", authentication.ResetPassword(db, mail, resetNotificationTemplate))
 	logger.Trace("Add authentication routes")
 
 	// User routes
