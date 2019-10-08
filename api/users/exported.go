@@ -2,6 +2,7 @@ package users
 
 import (
 	"github.com/akrantz01/apcsp/api/util"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
@@ -10,11 +11,15 @@ import (
 )
 
 // Methods pertaining to all users such as creation
-func AllUsers(db *gorm.DB, mail chan *gomail.Message) func(w http.ResponseWriter, r *http.Request) {
+func AllUsers(db *gorm.DB, mail chan *gomail.Message, box *packr.Box) func(w http.ResponseWriter, r *http.Request) {
 	// Load email templates
-	emailVerificationTemplate, err := template.ParseFiles("templates/verification.tmpl")
+	templateString, err := box.FindString("verification.tmpl")
 	if err != nil {
-		logrus.WithError(err).Fatal("Unable to load reset notification template")
+		logrus.WithError(err).Fatal("Unable to load verification template from box")
+	}
+	emailVerificationTemplate, err := template.New("verification-email").Parse(templateString)
+	if err != nil {
+		logrus.WithError(err).Fatal("Unable to load verification template")
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {

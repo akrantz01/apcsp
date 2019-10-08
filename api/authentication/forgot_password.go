@@ -8,6 +8,7 @@ import (
 	"github.com/akrantz01/apcsp/api/database"
 	"github.com/akrantz01/apcsp/api/util"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -17,9 +18,13 @@ import (
 	"time"
 )
 
-func ForgotPassword(db *gorm.DB, mail chan *gomail.Message) func(w http.ResponseWriter, r *http.Request) {
+func ForgotPassword(db *gorm.DB, mail chan *gomail.Message, box *packr.Box) func(w http.ResponseWriter, r *http.Request) {
 	// Load email templates
-	resetPasswordTemplate, err := template.ParseFiles("templates/reset-password.tmpl")
+	templateString, err := box.FindString("reset-password.tmpl")
+	if err != nil {
+		logrus.WithError(err).Fatal("Unable to load reset password template from box")
+	}
+	resetPasswordTemplate, err := template.New("reset-password-email").Parse(templateString)
 	if err != nil {
 		logrus.WithError(err).Fatal("Unable to load reset password template")
 	}

@@ -1,3 +1,5 @@
 /vendor
 /uploaded
 config.yaml
+**/*-packr.go
+api

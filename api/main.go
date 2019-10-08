@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"github.com/akrantz01/apcsp/api/authentication"
 	"github.com/akrantz01/apcsp/api/chats"
@@ -8,15 +9,19 @@ import (
 	"github.com/akrantz01/apcsp/api/files"
 	"github.com/akrantz01/apcsp/api/messages"
 	"github.com/akrantz01/apcsp/api/users"
+	"github.com/akrantz01/apcsp/api/util"
 	"github.com/akrantz01/apcsp/api/websockets"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -27,6 +32,9 @@ var mail = make(chan *gomail.Message)
 
 func main() {
 	logger := logrus.WithField("app", "main")
+
+	// Initialize file embedding
+	box := packr.New("static", "./static")
 
 	// Connect to the database
 	db := database.SetupDatabase()
@@ -50,13 +58,13 @@ func main() {
 	// Authentication routes
 	api.HandleFunc("/auth/login", authentication.Login(db))
 	api.HandleFunc("/auth/logout", authentication.Logout(db))
-	api.HandleFunc("/auth/forgot-password", authentication.ForgotPassword(db, mail))
-	api.HandleFunc("/auth/reset-password", authentication.ResetPassword(db, mail))
+	api.HandleFunc("/auth/forgot-password", authentication.ForgotPassword(db, mail, box))
+	api.HandleFunc("/auth/reset-password", authentication.ResetPassword(db, mail, box))
 	api.HandleFunc("/auth/verify-email", authentication.VerifyEmail(db))
 	logger.Trace("Add authentication routes")
 
 	// User routes
-	api.HandleFunc("/users", users.AllUsers(db, mail))
+	api.HandleFunc("/users", users.AllUsers(db, mail, box))
 	api.HandleFunc("/users/{user}", users.SpecificUser(db))
 	logger.Trace("Add user management routes")
 
@@ -80,7 +88,26 @@ func main() {
 
 	// Add static HTML routes
 	router.HandleFunc("/reset-password", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "static/reset-password.html")
+		// Get file from box
+		resetPassword, err := box.Find("reset-password.html")
+		if err != nil {
+			logrus.WithField("app", "static-files").WithError(err).Error("Failed to load file from box")
+			util.Responses.Error(w, http.StatusInternalServerError, "failed to load file from box")
+			return
+		}
+		buffer := bytes.NewBuffer(resetPassword)
+
+		// Write headers
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Length", strconv.FormatInt(int64(len(resetPassword)), 10))
+		w.WriteHeader(http.StatusOK)
+
+		// Copy to client
+		if _, err := io.Copy(w, buffer); err != nil {
+			logrus.WithField("app", "static-files").WithError(err).Error("Failed to copy file data to client")
+			util.Responses.Error(w, http.StatusInternalServerError, "failed to copy to client")
+			return
+		}
 	})
 
 	// Register router with http and enable cors
