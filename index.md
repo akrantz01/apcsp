@@ -16,3 +16,4 @@ It is also generated into an easily readable website [here](api/index.html).
   - [Logging](docs/api/logging.md)
   - [Routing](docs/api/routing.md)
   - [HTTP Responses](docs/api/http_responses.md)
+  - [Email](docs/api/email.md)
