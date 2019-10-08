@@ -52,10 +52,11 @@ func main() {
 	api.HandleFunc("/auth/logout", authentication.Logout(db))
 	api.HandleFunc("/auth/forgot-password", authentication.ForgotPassword(db, mail))
 	api.HandleFunc("/auth/reset-password", authentication.ResetPassword(db, mail))
+	api.HandleFunc("/auth/verify-email", authentication.VerifyEmail(db))
 	logger.Trace("Add authentication routes")
 
 	// User routes
-	api.HandleFunc("/users", users.AllUsers(db))
+	api.HandleFunc("/users", users.AllUsers(db, mail))
 	api.HandleFunc("/users/{user}", users.SpecificUser(db))
 	logger.Trace("Add user management routes")
 

@@ -11,6 +11,7 @@ const (
 const (
 	TokenAuthentication = iota
 	TokenResetPassword
+	TokenVerification
 )
 
 // Store user login information
@@ -21,6 +22,7 @@ type User struct {
 	Username   string `json:"username"`
 	Password   string `json:"-"`
 	Chats      []Chat `json:"-" gorm:"many2many:user_chats"`
+	Verified   bool   `json:"verified"`
 }
 
 // Store authentication tokens returned from login
