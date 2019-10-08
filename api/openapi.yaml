@@ -4,7 +4,7 @@ info:
   description: |
     # Introduction
     Manage the entirety of the chat application without a user interface
-  version: "1.0.0"
+  version: "1.3"
   title: Chat App API
   contact:
     email: alex@alexkrantz.com
@@ -145,6 +145,164 @@ paths:
                     type: string
                     description: reason for failure
                     example: "invalid token: unable to decode signing key: 1"
+  /api/auth/forgot-password:
+    get:
+      tags:
+        - authentication
+      summary: request password reset
+      description: |
+        Initiates the process for resetting a user's password which includes sending an email with a token to authenticate the resetting of a password.
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+          required: true
+          description: Username to reset password for
+          example: alex
+      responses:
+        '200':
+          description: successfully initiated flow
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' is required
+  /api/auth/reset-password:
+    post:
+      tags:
+        - authentication
+      summary: reset a user's password
+      security:
+        - ResetPasswordToken: []
+      description: |
+        Complete the reset password flow. Overwrites the current password of the user, but does not revoke any valid authentication tokens.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: SHA256 hex digest of new password
+                  maxLength: 64
+                  minLength: 64
+                  example: "sha256-hex-digest"
+      responses:
+        '200':
+          description: successfully reset password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: field 'password' must be of length 64
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+  /api/auth/verify-email:
+    get:
+      tags:
+        - authentication
+      summary: verify a user's email
+      security:
+        - EmailVerificationToken: []
+      description: |
+        Mark a user as verified after verifying the token send from the email.
+      responses:
+          '200':
+            description: successfully reset password
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      description: current status message
+                      example: success
+          '400':
+            description: bad input parameter
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      description: current status message
+                      example: error
+                    reason:
+                      type: string
+                      description: reason for failure
+                      example: query parameter 'token' is required
+          '401':
+            description: bad authentication token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      description: current status message
+                      example: error
+                    reason:
+                      type: string
+                      description: reason for failure
+                      example: "invalid token: unable to decode signing key: 1"
+
 
   /api/users:
     get:
@@ -1571,6 +1729,17 @@ components:
       type: apiKey
       in: header
       name: Authorization
+      description: JWT authentication token from login route
+    ResetPasswordToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: The password reset JWT from the reset email. Generated after the user initializes the password reset flow.
+    EmailVerificationToken:
+      type: apiKey
+      in: query
+      name: token
+      description: The email verification JWT from the verification email. Generated after the users registers.
   schemas:
     User:
       type: object
