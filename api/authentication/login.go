@@ -83,6 +83,13 @@ func Login(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
 			db.Save(&user)
 		}
 
+		// Ensure user is verified
+		if !user.Verified {
+			logger.Trace("User email not verified")
+			util.Responses.Error(w, http.StatusForbidden, "user email not verified")
+			return
+		}
+
 		// Create signing key for JWT
 		signingKey := make([]byte, 128)
 		if _, err := rand.Read(signingKey); err != nil {
