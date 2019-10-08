@@ -83,20 +83,9 @@ func ForgotPassword(db *gorm.DB, mail chan *gomail.Message, resetPasswordTemplat
 		}
 		logger.Trace("Signed JWT with signing key")
 
-		// Assemble values for templates
-		templateVars := struct {
-			Name   string
-			Domain string
-			Token  string
-		}{
-			Name:   user.Name,
-			Domain: viper.GetString("http.domain"),
-			Token:  signed,
-		}
-
 		// Render template to string
 		stringBuffer := bytes.NewBuffer([]byte{})
-		if err := resetPasswordTemplate.Execute(stringBuffer, templateVars); err != nil {
+		if err := resetPasswordTemplate.Execute(stringBuffer, map[string]string{"name": user.Name, "domain": viper.GetString("http.domain"), "token": signed}); err != nil {
 			logger.WithError(err).Error("Unable to render template")
 			util.Responses.Error(w, http.StatusInternalServerError, "failed to generate email")
 			return
