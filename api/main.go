@@ -84,6 +84,11 @@ func main() {
 	api.HandleFunc("/ws", websockets.Websockets(hub, db))
 	logger.Trace("Add websocket routes")
 
+	// Add static HTML routes
+	router.HandleFunc("/reset-password", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "static/reset-password.html")
+	})
+
 	// Register router with http and enable cors
 	http.Handle("/", loggingHandler{handler: cors.AllowAll().Handler(router)})
 	logger.Trace("Register router with http handler")

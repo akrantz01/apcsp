@@ -19,7 +19,7 @@ func authMiddleware(db *gorm.DB) func(next http.Handler) http.Handler {
 			logger = logrus.WithFields(logrus.Fields{"app": "middleware", "remote_address": r.RemoteAddr})
 
 			// Allow if authenticating
-			if r.RequestURI == "/api/auth/login" || (r.RequestURI == "/api/users" && r.Method == "POST") || r.RequestURI == "/api/ws" || strings.Index(r.RequestURI, "/api/auth/forgot-password") == 0 {
+			if r.RequestURI == "/api/auth/login" || (r.RequestURI == "/api/users" && r.Method == "POST") || r.RequestURI == "/api/ws" || strings.Index(r.RequestURI, "/api/auth/forgot-password") == 0 || strings.Index(r.RequestURI, "/api/") == -1 {
 				logger.WithField("uri", r.RequestURI).Trace("Unauthenticated route received")
 				next.ServeHTTP(w, r)
 				return
