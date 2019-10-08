@@ -1,0 +1,1851 @@
+openapi: 3.0.0
+
+info:
+  description: |
+    # Introduction
+    Manage the entirety of the chat application without a user interface
+  version: "1.3"
+  title: Chat App API
+  contact:
+    email: alex@alexkrantz.com
+  license:
+    name: GNU AGPL v3.0
+    url: 'https://www.gnu.org/licenses/agpl-3.0.en.html'
+
+tags:
+  - name: authentication
+    description: User login and logout routes
+  - name: users
+    description: User modification routes
+  - name: chats
+    description: Chat management routes
+  - name: messages
+    description: Message management routes within chats
+  - name: files
+    description: File and image message types
+
+x-tagGroups:
+  - name: User Management
+    tags:
+      - authentication
+      - users
+  - name: Chat
+    tags:
+      - chats
+      - messages
+      - files
+
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - authentication
+      summary: logins in a user
+      description: |
+        Generates an authentication token given a valid username and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Username to login as
+                  example: "alex"
+                password:
+                  type: string
+                  description: SHA256 hex digest of password associated with username
+                  maxLength: 64
+                  minLength: 64
+                  example: "sha256-hex-digest"
+      responses:
+        '200':
+          description: authentication token along with success status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: authentication token to be used in other api calls
+                        example: j.w.t
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: header 'Content-Type' must be 'application/json'
+        '401':
+          description: bad username or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: invalid username or password
+  /api/auth/logout:
+    get:
+      tags:
+        - authentication
+      summary: logs out a user
+      security:
+        - ApiKey: []
+      description: |
+        Revokes an authentication token for a user
+      responses:
+        '200':
+          description: successfully revoked token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '401':
+          description: bad username or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+  /api/auth/forgot-password:
+    get:
+      tags:
+        - authentication
+      summary: request password reset
+      description: |
+        Initiates the process for resetting a user's password which includes sending an email with a token to authenticate the resetting of a password.
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+          required: true
+          description: Username to reset password for
+          example: alex
+      responses:
+        '200':
+          description: successfully initiated flow
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' is required
+  /api/auth/reset-password:
+    post:
+      tags:
+        - authentication
+      summary: reset a user's password
+      security:
+        - ResetPasswordToken: []
+      description: |
+        Complete the reset password flow. Overwrites the current password of the user, but does not revoke any valid authentication tokens.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: SHA256 hex digest of new password
+                  maxLength: 64
+                  minLength: 64
+                  example: "sha256-hex-digest"
+      responses:
+        '200':
+          description: successfully reset password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: field 'password' must be of length 64
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+  /api/auth/verify-email:
+    get:
+      tags:
+        - authentication
+      summary: verify a user's email
+      security:
+        - EmailVerificationToken: []
+      description: |
+        Mark a user as verified after verifying the token send from the email.
+      responses:
+          '200':
+            description: successfully reset password
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      description: current status message
+                      example: success
+          '400':
+            description: bad input parameter
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      description: current status message
+                      example: error
+                    reason:
+                      type: string
+                      description: reason for failure
+                      example: query parameter 'token' is required
+          '401':
+            description: bad authentication token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      description: current status message
+                      example: error
+                    reason:
+                      type: string
+                      description: reason for failure
+                      example: "invalid token: unable to decode signing key: 1"
+
+
+  /api/users:
+    get:
+      tags:
+        - users
+      summary: search for users
+      security:
+        - ApiKey: []
+      description: |
+        Fuzzy search for users by username to get name
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+          required: true
+          description: Username to search on
+          example: al
+      responses:
+        '200':
+          description: list of users found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+                  data:
+                    type: array
+                    description: list of top 10 most similar users
+                    items:
+                      type: object
+                      description: description of the user
+                      properties:
+                        name:
+                          type: string
+                          description: name of the user
+                          example: Alex
+                        username:
+                          type: string
+                          description: full username of the user
+                          example: alex
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+    post:
+      tags:
+        - users
+      summary: register a user
+      description: |
+        Create a user with given name, email, username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Username to login as
+                  example: "alex"
+                password:
+                  type: string
+                  description: SHA256 hex digest of password associated with username
+                  maxLength: 64
+                  minLength: 64
+                  example: "sha256-hex-digest"
+                email:
+                  type: string
+                  description: Email to be associated with user
+                  maxLength: 254
+                  minLength: 5
+                  example: "a@el.x"
+                name:
+                  type: string
+                  description: Name associated with user
+                  example: "Alex"
+
+      responses:
+        '200':
+          description: successfully created user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: header 'Content-Type' must be 'application/json'
+        '409':
+          description: conflicting value with existing user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: email is already taken
+  /api/users/{user}:
+    get:
+      tags:
+        - users
+      summary: describe a user
+      security:
+        - ApiKey: []
+      description: |
+        Get a user's information by their username
+      parameters:
+        - in: path
+          name: user
+          schema:
+            type: string
+          required: true
+          description: Username to describe
+          example: alex
+      responses:
+        '200':
+          description: user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+                  data:
+                    type: object
+                    description: description of the user
+                    properties:
+                      name:
+                        type: string
+                        description: name of the user
+                        example: Alex
+                      username:
+                        type: string
+                        description: full username of the user
+                        example: alex
+                      email:
+                        type: string
+                        description: email associated with the user
+                        example: "a@le.x"
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+    put:
+      tags:
+        - users
+      summary: update a user
+      security:
+        - ApiKey: []
+      description: |
+        Update a user's name, password, or email by their username
+      parameters:
+        - in: path
+          name: user
+          schema:
+            type: string
+          required: true
+          description: Username to update
+          example: alex
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: new name for user
+                  example: "Krantz"
+                email:
+                  type: string
+                  description: new email for user
+                  minLength: 5
+                  maxLength: 254
+                  example: "al@e.x"
+                password:
+                  type: string
+                  description: new SHA256 hex digest of password
+                  example: "sha256-hex-digest"
+                  minLength: 64
+                  maxLength: 64
+      responses:
+        '200':
+          description: successfully updated user's information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to modify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "not allowed to modify other users"
+    delete:
+      tags:
+        - users
+      summary: delete a user
+      security:
+        - ApiKey: []
+      description: |
+        Delete a user and all their information by username
+      parameters:
+        - in: path
+          name: user
+          schema:
+            type: string
+          required: true
+          description: Username to delete
+          example: alex
+      responses:
+        '200':
+          description: successfully deleted user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to modify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "not allowed to modify other users"
+
+  /api/chats:
+    get:
+      tags:
+        - chats
+      summary: list user's chats
+      security:
+        - ApiKey: []
+      description: |
+        Get a list of all the chats a user is in.
+        Data returned includes users in the chat, the most recent message, and the name of the chat.
+      responses:
+        '200':
+          description: list of chats associated with user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+                  data:
+                    type: array
+                    description: list of chats
+                    items:
+                      type: object
+                      description: description of the chat
+                      properties:
+                        name:
+                          type: string
+                          description: name of the chat
+                          example: Test Chat
+                        uuid:
+                          type: string
+                          description: id of the chat
+                          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+                        users:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/User"
+                        messages:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Message"
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+    post:
+      tags:
+        - chats
+      summary: create a chat
+      security:
+        - ApiKey: []
+      description: |
+        Create a new chat with the specified users and initial message. A name must also be passed to the chat.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Display name of the chat
+                  example: "Super Awesome Chat"
+                users:
+                  type: array
+                  description: Users to be added to the chat
+                  items:
+                    type: string
+                    example: "alex"
+                message:
+                  type: string
+                  description: Initial message to be sent
+                  example: "Some message sent to the chat"
+
+      responses:
+        '200':
+          description: successfully created user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: user 'test' does not exist
+  /api/chats/{chat}:
+    get:
+      tags:
+        - chats
+      summary: describe a chat
+      security:
+        - ApiKey: []
+      description: |
+        Get the users in the chat, the most recent message, and the name of the chat by the uuid.
+      parameters:
+        - in: path
+          name: chat
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: uuid of chat
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+      responses:
+        '200':
+          description: information about the request chat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+                  data:
+                    type: array
+                    description: list of chats
+                    items:
+                      type: object
+                      description: description of the chat
+                      properties:
+                        name:
+                          type: string
+                          description: name of the chat
+                          example: Test Chat
+                        uuid:
+                          type: string
+                          description: id of the chat
+                          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+                        users:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/User"
+                        messages:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Message"
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: specified chat does not exist
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authentication but not allowed to read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "user is not part of specified chat"
+    put:
+      tags:
+        - chats
+      summary: update a user
+      security:
+        - ApiKey: []
+      description: |
+        Update a chat's name or the users in it. Not all body parameters are required and can be mixed and matched. Keep in mind that 'mode' and 'user' must be sent together otherwise a 400 response will be generated
+      parameters:
+        - in: path
+          name: chat
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: uuid of chat
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: new name for the chat
+                  example: New Name
+                mode:
+                  type: string
+                  description: operation for the modification of users
+                  enum:
+                    - add
+                    - delete
+                  example: add
+                user:
+                  type: string
+                  description: user to modify
+                  example: alex
+            examples:
+              name:
+                summary: change chat name
+                value:
+                  name: New Name
+              add:
+                summary: add user to chat
+                value:
+                  mode: add
+                  user: test
+              delete:
+                summary: remove user from chat
+                value:
+                  mode: delete
+                  user: test
+
+      responses:
+        '200':
+          description: successfully updated user's information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to modify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "user is not part of specified chat"
+    delete:
+      tags:
+        - chats
+      summary: delete a chat
+      security:
+        - ApiKey: []
+      description: |
+        Delete a user and all their information by username
+      parameters:
+        - in: path
+          name: chat
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: uuid of chat
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+      responses:
+        '200':
+          description: successfully deleted chat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'chat' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to modify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "specified user is not in chat"
+
+  /api/chats/{chat}/messages:
+    get:
+      tags:
+        - messages
+      summary: list messages in chat
+      security:
+        - ApiKey: []
+      description: |
+        Get a list of messages sent in a chat. By default, it splits the response into pages of 100 messages each. Though the page and number of items per page can be modified through query parameters.
+      parameters:
+        - in: path
+          name: chat
+          schema:
+            type: string
+            format: uuid
+          description: uuid of chat
+          required: true
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+        - in: query
+          name: page
+          schema:
+            type: number
+          description: "page to view; default: 0"
+          required: false
+          example: 1
+        - in: query
+          name: per_page
+          schema:
+            type: number
+          description: "number of messages to show per page; default: 100"
+          required: false
+          example: 100
+      responses:
+        '200':
+          description: list of messages in a chat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      messages:
+                        type: array
+                        description: list of messages in chat
+                        items:
+                          $ref: "#/components/schemas/Message"
+                      page:
+                        type: number
+                        description: current page
+                        example: 0
+                      perPage:
+                        type: number
+                        description: number of items per page
+                        example: 100
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to modify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "specified user is not in chat"
+    post:
+      tags:
+        - messages
+      summary: send a message
+      security:
+        - ApiKey: []
+      description: |
+        Send a message to the specified chat.
+      parameters:
+        - in: path
+          name: chat
+          schema:
+            type: string
+            format: uuid
+          description: uuid of chat
+          required: true
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/NormalMessage"
+                - $ref: "#/components/schemas/ImageMessage"
+                - $ref: "#/components/schemas/FileMessage"
+              discriminator:
+                propertyName: type
+                mapping:
+                  message: "#/components/schemas/NormalMessage"
+                  image: "#/components/schemas/ImageMessage"
+                  file: "#/components/schemas/FileMessage"
+
+      responses:
+        '200':
+          description: successfully sent message
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericResponse"
+                  - $ref: "#/components/schemas/UploadResponse"
+                discriminator:
+                  mapping:
+                    "standard message": "#/components/schemas/GenericResponse"
+                    "image/file message": "#/components/schemas/UploadResponse"
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: user 'test' does not exist
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to modify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "specified user is not in chat"
+  /api/chats/{chat}/messages/{message}:
+    get:
+      tags:
+        - messages
+      summary: describe a message
+      security:
+        - ApiKey: []
+      description: |
+        Get all data about a specific message in a chat. Retrieved by index of message
+      parameters:
+        - in: path
+          name: chat
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: uuid of chat
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+        - in: path
+          name: message
+          required: true
+          schema:
+            type: number
+          description: index of message
+          example: 1
+      responses:
+        '200':
+          description: successfully retrieved message data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: specified chat does not exist
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authentication but not allowed to read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "user is not part of specified chat"
+    put:
+      tags:
+        - messages
+      summary: update a sent message
+      security:
+        - ApiKey: []
+      description: |
+        Modify the content of an already sent message
+      parameters:
+        - in: path
+          name: chat
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: uuid of chat
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+        - in: path
+          name: message
+          required: true
+          schema:
+            type: number
+          description: index of message
+          example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: new message content
+                  example: "Some new message"
+      responses:
+        '200':
+          description: successfully updated message's information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'username' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to modify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "user is not part of specified chat"
+    delete:
+      tags:
+        - messages
+      summary: delete a message
+      security:
+        - ApiKey: []
+      description: |
+        Delete a message from a chat
+      parameters:
+        - in: path
+          name: chat
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: uuid of chat
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+        - in: path
+          name: message
+          required: true
+          schema:
+            type: number
+          description: index of message
+          example: 1
+      responses:
+        '200':
+          description: successfully deleted message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: query parameter 'chat' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to modify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "specified user is not in chat"
+
+  /api/files/{file}:
+    get:
+      tags:
+        - files
+      summary: download a file/image
+      security:
+        - ApiKey: []
+      description: |
+        Download a file or image from a message in a chat
+      parameters:
+        - in: path
+
+          name: file
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: UUID of the file
+          example: d1ed2962-aef1-4bcf-a6b6-8f9836366b1f
+      responses:
+        '200':
+          description: file or image
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: path parameter 'file' must be present
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "user is not part of associated chat"
+    post:
+      tags:
+        - files
+      summary: upload a file
+      security:
+        - ApiKey: []
+      description: |
+        Upload a file to be associated with a message
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: successfully uploaded file/image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: success
+        '400':
+          description: bad input parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "upload link has already been used"
+        '401':
+          description: bad authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "invalid token: unable to decode signing key: 1"
+        '403':
+          description: authenticated but not allowed to write
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: current status message
+                    example: error
+                  reason:
+                    type: string
+                    description: reason for failure
+                    example: "user is not part of associated chat"
+
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: JWT authentication token from login route
+    ResetPasswordToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: The password reset JWT from the reset email. Generated after the user initializes the password reset flow.
+    EmailVerificationToken:
+      type: apiKey
+      in: query
+      name: token
+      description: The email verification JWT from the verification email. Generated after the users registers.
+  schemas:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Alex
+        username:
+          type: string
+          example: alex
+        email:
+          type: string
+          example: a@le.x
+    Message:
+      type: object
+      properties:
+        sender:
+          $ref: "#/components/schemas/User"
+        file:
+          $ref: "#/components/schemas/File"
+        message:
+          type: string
+          example: Some sent message
+        timestamp:
+          type: number
+          example: 1566456966279980300
+    File:
+      type: object
+      nullable: true
+      properties:
+        filename:
+          type: string
+          description: name of the file
+          example: test.jpg
+        uuid:
+          type: string
+          description: id of file
+          example: 3e17b51b-01db-4b20-b1f5-95fd054376b7
+        used:
+          type: boolean
+          description: whether the file has been used
+          example: false
+    NormalMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          description: type of message
+          example: message
+          enum:
+            - message
+            - image
+            - file
+        message:
+          type: string
+          description: message to send
+          example: Hello
+    ImageMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          description: type of message
+          example: image
+          enum:
+            - message
+            - image
+            - file
+        message:
+          type: string
+          description: caption for message
+          example: Here is an image
+    FileMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          description: type of message
+          example: file
+          enum:
+            - message
+            - image
+            - file
+        filename:
+          type: string
+          description: name of file
+          example: somefile.doc
+    GenericResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: current status message
+          example: success
+    UploadResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: current status message
+          example: success
+        data:
+          type: object
+          description: container for generated data
+          properties:
+            url:
+              type: string
+              description: url to upload file to
+              example: http://127.0.0.1:8080/api/files/d1ed2962-aef1-4bcf-a6b6-8f9836366b1f

@@ -1,0 +1,71 @@
+# Main server configuration
+http:
+  # What address to listen on
+  # Use 0.0.0.0 for all interfaces
+  # Default: 127.0.0.1
+  host: 127.0.0.1
+  # What port to listen on
+  # Default: 8080
+  port: 8080
+  # Domain/IP where the service can be accessed
+  # Default: http://127.0.0.1:8080
+  domain: http://127.0.0.1:8080
+  # Delete all uploaded files
+  # Default: false
+  reset_files: false
+
+# Outgoing email configuration
+email:
+  # Address where the SMTP server is running
+  # Default: 127.0.0.1
+  host: 127.0.0.1
+  # Port where the server is listening
+  # Default: 25
+  port: 25
+  # Enable secure connection
+  # Default: false
+  ssl: false
+  # User to authenticate as
+  # Default: postmaster
+  username: postmaster
+  # Password corresponding to user
+  # Default: postmaster
+  password: postmaster
+  # Email that the messages will be from
+  # Default: postmaster@example.com
+  sender: postmaster@example.com
+
+# Logging configuration
+logging:
+  # Format to output logs in
+  # Options: json, text
+  # Default: text
+  format: text
+  # Set minimum level to log
+  # Options: trace, debug, info, warn, error, fatal, panic
+  # Default: info
+  level: info
+
+# Database connection configuration
+database:
+  # Address where the PostgreSQL server is running
+  # Default: 127.0.0.1
+  host: 127.0.0.1
+  # Port where the PostgreSQL server is listening
+  port: 5432
+  # SSL mode of GORM
+  # Options: disable, allow, prefer, require, verify-ca, verify-full
+  # Default: disable
+  ssl: disable
+  # Username to authenticate against
+  # Default: postgres
+  username: postgres
+  # Password corresponding with username
+  # Default: postgres
+  password: postgres
+  # Database to write tables to
+  # Default: postgres
+  database: postgres
+  # Delete the tables if they already exist
+  # Default: false
+  reset: false
