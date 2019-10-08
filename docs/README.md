@@ -16,3 +16,4 @@ It is also generated into an easily readable website [here](https://akrantz01.gi
   - [Logging](api/logging.md)
   - [Routing](api/routing.md)
   - [HTTP Responses](api/http_responses.md)
+  - [Email](api/email.md)
