@@ -1,11 +1,11 @@
 import React from 'react';
 import {Component} from 'react';
-import {View, StatusBar, Text} from 'react-native';
+import {View, StatusBar, Text, StyleSheet} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
-import {Card, styles} from './SettingsScreen';
+import {Card, styles} from './Settings';
 
-export class EditScreen extends Component {
+export default class Edit extends Component {
     static navigationOptions = ({navigation}) => {
         return {
             title: navigation.getParam('name', 'Edit'),
@@ -18,7 +18,9 @@ export class EditScreen extends Component {
             <LinearGradient colors={['#00af3a', '#005baf']}>
                 <View style={styles.container}>
                     <StatusBar barStyle={'light-content'} />
-                    <Text style={styles.title}>{this.props.navigation.getParam('name', 'Edit')}</Text>
+                    <View style={thisStyles.title}>
+                        <Text style={styles.title}>{this.props.navigation.getParam('name', 'Edit')}</Text>
+                    </View>
                     <Card
                         text={'Back'}
                         textColor={'#444444'}
@@ -58,3 +60,9 @@ export class EditScreen extends Component {
         this.props.navigation.navigate('Auth');
     }
 }
+
+const thisStyles = StyleSheet.create({
+    title: {
+        paddingTop: 55,
+    },
+});

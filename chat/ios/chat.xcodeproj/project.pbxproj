@@ -7,35 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		009333C414E7426E9C7AFB0C /* Entypo.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 28EA67D7E2CD4E3E9342887B /* Entypo.ttf */; };
 		00E356F31AD99517003FC87E /* chatTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* chatTests.m */; };
 		1103A4F87838367D4A273803 /* libPods-chat-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CF3708F7130D01C21482DAC6 /* libPods-chat-tvOSTests.a */; };
-		1250660F6C574B63BEA729C8 /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E0A802FA564747E0A1FE51E5 /* SimpleLineIcons.ttf */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		1A36B0D4365E4263B5B088A4 /* Fontisto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 176D30BD479F4368B01C1E2B /* Fontisto.ttf */; };
-		227AA3F1C4A042D88FD1B353 /* FontAwesome5_Solid.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FE7746D751504A65B0C9AD65 /* FontAwesome5_Solid.ttf */; };
-		291F87E7DD6549DEAD1B454D /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DD2093034DE446098AF8B496 /* MaterialCommunityIcons.ttf */; };
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* chatTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* chatTests.m */; };
-		2EEBA194B3304391B1CA9C0E /* AntDesign.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1DC8082B9CD84E7E9EDA3451 /* AntDesign.ttf */; };
-		34EF0E011DD74BAEADE00A9A /* Zocial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F37760E9EE0F49BF86F9A7D2 /* Zocial.ttf */; };
-		375357E789064DA7A211C8E8 /* FontAwesome5_Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D1026686FB304B9FA08E29AE /* FontAwesome5_Regular.ttf */; };
-		4AE87D860B3C4E99A33B67CF /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 45100BA091544EE2B0EE1A03 /* FontAwesome.ttf */; };
-		5CD611493ACC46B3BA537488 /* Feather.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 481E76B91EE34F9EB9753FDE /* Feather.ttf */; };
 		600132BE5CB777961A27B40E /* libPods-chatTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D2FCAD4D5062F1FE808B9E3 /* libPods-chatTests.a */; };
-		627CDB594FC945318EE239D6 /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DDC00B8EE18C46779A796B25 /* MaterialIcons.ttf */; };
 		6EFF09A63844F46065125257 /* libPods-chat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BB866859A407EBAF7C219FF /* libPods-chat.a */; };
-		89C095D536E048408571EB1C /* Ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5BE5C927541C43DD8530C8A4 /* Ionicons.ttf */; };
 		9332D92102A79CDC6E5EEECC /* libPods-chat-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EF1503B7EB8946FFB22F5245 /* libPods-chat-tvOS.a */; };
-		96C6EBE10F5A4364B35CFE0D /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1731E9FF25364A74A69667E6 /* Octicons.ttf */; };
-		9EE3002F4AB14775AA88628C /* EvilIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 225FC292152746AD828BE011 /* EvilIcons.ttf */; };
-		D4BCCE7335F54D45B2A62144 /* Foundation.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 153B4D8B50964C349125CDC7 /* Foundation.ttf */; };
-		E963FC222FA54A43AF219528 /* FontAwesome5_Brands.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 270CBA9960E74B078FE04DBB /* FontAwesome5_Brands.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -399,22 +383,6 @@
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
-				2EEBA194B3304391B1CA9C0E /* AntDesign.ttf in Resources */,
-				009333C414E7426E9C7AFB0C /* Entypo.ttf in Resources */,
-				9EE3002F4AB14775AA88628C /* EvilIcons.ttf in Resources */,
-				5CD611493ACC46B3BA537488 /* Feather.ttf in Resources */,
-				4AE87D860B3C4E99A33B67CF /* FontAwesome.ttf in Resources */,
-				E963FC222FA54A43AF219528 /* FontAwesome5_Brands.ttf in Resources */,
-				375357E789064DA7A211C8E8 /* FontAwesome5_Regular.ttf in Resources */,
-				227AA3F1C4A042D88FD1B353 /* FontAwesome5_Solid.ttf in Resources */,
-				1A36B0D4365E4263B5B088A4 /* Fontisto.ttf in Resources */,
-				D4BCCE7335F54D45B2A62144 /* Foundation.ttf in Resources */,
-				89C095D536E048408571EB1C /* Ionicons.ttf in Resources */,
-				291F87E7DD6549DEAD1B454D /* MaterialCommunityIcons.ttf in Resources */,
-				627CDB594FC945318EE239D6 /* MaterialIcons.ttf in Resources */,
-				96C6EBE10F5A4364B35CFE0D /* Octicons.ttf in Resources */,
-				1250660F6C574B63BEA729C8 /* SimpleLineIcons.ttf in Resources */,
-				34EF0E011DD74BAEADE00A9A /* Zocial.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -712,6 +680,7 @@
 			baseConfigurationReference = 7C4DDAF162991700258D1883 /* Pods-chatTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				DEVELOPMENT_TEAM = XNZRVQ7M35;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -736,6 +705,7 @@
 			baseConfigurationReference = C1D1B17E33972D7B0BF271AB /* Pods-chatTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = XNZRVQ7M35;
 				INFOPLIST_FILE = chatTests/Info.plist;

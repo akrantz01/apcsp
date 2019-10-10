@@ -2,9 +2,9 @@ import React from 'react';
 import {Component} from 'react';
 import {View, StyleSheet} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {Card} from '../settings/SettingsScreen';
+import {Card} from '../settings/Settings';
 
-export default class NewScreen extends Component {
+export default class Create extends Component {
     static navigationOptions = {
         title: 'Create Message',
         header: null,

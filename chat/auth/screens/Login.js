@@ -1,12 +1,14 @@
 import React, {Component} from 'react';
 import {View, StyleSheet, Button, StatusBar, Text, Keyboard, TouchableWithoutFeedback} from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
 import {Input} from 'react-native-elements';
 import LinearGradient from 'react-native-linear-gradient';
 import {Button as NButton} from 'native-base';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {sha256} from 'react-native-sha256';
+import {APIService} from '../../APIService';
+import {DataService} from '../../DataService';
 
-export class Login extends Component {
+export default class Login extends Component {
     static navigationOptions = {
         title: 'Please sign in',
         header: null,
@@ -58,16 +60,17 @@ export class Login extends Component {
     }
 
     async _signInAsync() {
-        // sha256(this.state.password).then(hash => {
-        //     console.log('hash', hash);
-        //     APIService.login(this.state.username, hash).then(res => {
-        //         console.log('response', res);
-        //         AsyncStorage.setItem('authToken', res);
-        //         this.props.navigation.navigate('App');
-        //     });
-        // });
-        AsyncStorage.setItem('authToken', 'abc');
-        this.props.navigation.navigate('App');
+        sha256(this.state.password).then(hash => {
+            console.log('hash', hash);
+            APIService.login(this.state.username, hash).then(succeeded => {
+                if (succeeded) {
+                    DataService.saveUsername(this.state.username);
+                    this.props.navigation.navigate('App');
+                }
+            });
+        });
+        // AsyncStorage.setItem('authToken', 'abc');
+        // this.props.navigation.navigate('App');
     }
 }
 

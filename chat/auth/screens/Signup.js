@@ -4,8 +4,9 @@ import {Input, Icon} from 'react-native-elements';
 import LinearGradient from 'react-native-linear-gradient';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {sha256} from 'react-native-sha256';
+import {APIService} from '../../APIService';
 
-export class Signup extends Component {
+export default class Signup extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -45,30 +46,33 @@ export class Signup extends Component {
     };
 
     async _signUpAsync() {
-        console.log('$$$$$$$$$$$$$$$$$$$$');
-        console.log(
-            this.state.fullName,
-            this.state.email,
-            this.state.username,
-            this.state.password,
-            this.state.confirmPass,
-        );
-        console.log('start');
-        this.setState({loading: true});
-        if (this.state.password === this.state.confirmPass) {
-            sha256(this.state.password).then(hash => {
-                console.log('hash', hash);
-                // APIService.register(
-                //     this.state.fullName,
-                //     this.state.email,
-                //     this.state.username,
-                //     hash,
-                // ).then(res => {
-                //     console.log('response', res);
-                //     this.setState({loading: false});
-                //     this.props.navigation.navigate('App');
-                // });
-            });
+        if (
+            this.state.fullName &&
+            this.state.email &&
+            this.state.username &&
+            this.state.password &&
+            this.state.confirmPass
+        ) {
+            console.log(
+                this.state.fullName,
+                this.state.email,
+                this.state.username,
+                this.state.password,
+                this.state.confirmPass,
+            );
+            this.setState({loading: true});
+            if (this.state.password === this.state.confirmPass) {
+                sha256(this.state.password).then(hash => {
+                    console.log('hash', hash);
+                    APIService.register(this.state.fullName, this.state.email, this.state.username, hash).then(res => {
+                        console.log(res);
+                        console.log(res.json());
+                        this.setState({loading: false});
+                    });
+                });
+            } else {
+                //Passwords don't match
+            }
         }
     }
 

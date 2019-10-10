@@ -13,8 +13,10 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import {Avatar, Icon} from 'react-native-elements';
 import Dialog from 'react-native-dialog';
+import {DataService} from '../../../DataService';
+import {APIService} from '../../../APIService';
 
-export default class MessagesScreen extends Component {
+export default class Messages extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -34,9 +36,10 @@ export default class MessagesScreen extends Component {
 
     _onRefresh() {
         this.setState({refreshing: true});
-        // .then( () => {
-        this.setState({refreshing: false});
-        // });
+
+        setTimeout(() => {
+            this.setState({refreshing: false});
+        }, 1000);
     }
 
     getData() {
@@ -75,9 +78,16 @@ export default class MessagesScreen extends Component {
                 </Dialog.Container>
 
                 <StatusBar barStyle={'light-content'} networkActivityIndicatorVisible={this.state.net} />
-                <TouchableOpacity style={styles.editContainer} onPress={() => this.toggleEdit()}>
-                    <View style={[styles.card, this.state.edit ? styles.editSelected : styles.editButton]}>
-                        <Text style={this.state.edit ? styles.editTextSelected : styles.editText}>Edit</Text>
+                <TouchableOpacity
+                    style={styles.editContainer}
+                    onPress={() => {
+                        DataService.getUserToken().then(tok => console.log(tok));
+                        navigate('Settings');
+                    }}>
+                    <View style={styles.settingsButton}>
+                        <View style={styles.buttonBarContents}>
+                            <Icon name={'settings'} type={'feather'} color={'black'} />
+                        </View>
                     </View>
                 </TouchableOpacity>
                 <SafeAreaView style={styles.safeArea} maxWidth={600}>
@@ -85,13 +95,20 @@ export default class MessagesScreen extends Component {
                     <View style={styles.buttonBar}>
                         <View style={styles.buttonContainerMessage}>
                             <TouchableOpacity
-                                onPress={() =>
-                                    navigate({
-                                        routeName: 'New',
-                                        params: {
-                                            transition: 'transition',
-                                        },
-                                    })
+                                onPress={
+                                    () =>
+                                        DataService.getUsername().then(username =>
+                                            APIService.deleteAccount(username).then(res => {
+                                                console.log(res);
+                                                console.log(res.json());
+                                            }),
+                                        )
+                                    // navigate({
+                                    //     routeName: 'New',
+                                    //     params: {
+                                    //         transition: 'transition',
+                                    //     },
+                                    // })
                                 }>
                                 <View style={styles.buttonBarButtonBackground}>
                                     <View style={styles.buttonBarContents}>
@@ -101,13 +118,16 @@ export default class MessagesScreen extends Component {
                                 </View>
                             </TouchableOpacity>
                         </View>
-                        <View style={styles.buttonContainerSettings}>
-                            <TouchableOpacity onPress={() => navigate('Settings')}>
-                                <View style={styles.buttonBarButtonBackground}>
-                                    <View style={styles.buttonBarContents}>
-                                        <Icon name={'settings'} type={'feather'} color={'white'} />
-                                        <Text style={styles.buttonText}>Settings</Text>
-                                    </View>
+                        <View style={styles.buttonContainerEdit}>
+                            <TouchableOpacity onPress={() => this.toggleEdit()}>
+                                <View
+                                    style={[
+                                        styles.buttonBarButtonBackground,
+                                        this.state.edit ? styles.editSelected : styles.editButton,
+                                    ]}>
+                                    <Text style={this.state.edit ? styles.editTextSelected : styles.editText}>
+                                        Edit
+                                    </Text>
                                 </View>
                             </TouchableOpacity>
                         </View>
@@ -128,7 +148,8 @@ export default class MessagesScreen extends Component {
                                     this.state.edit
                                         ? null
                                         : navigate('Thread', {
-                                              name: item.name.split(' ')[0],
+                                              name: item.name, //.split(' ')[0],
+                                              chatID: item.key,
                                           })
                                 }>
                                 <View style={styles.card}>
@@ -139,7 +160,9 @@ export default class MessagesScreen extends Component {
                                         style={styles.cardGrad}>
                                         <Avatar rounded title="MD" size={50} />
                                         <View style={styles.cardTextContainer}>
-                                            <Text style={styles.name}>{item.name}</Text>
+                                            <Text style={styles.name} numberOfLines={1}>
+                                                {item.name}
+                                            </Text>
                                             <Text style={styles.cardText} numberOfLines={1}>
                                                 this is the previous message
                                             </Text>
@@ -184,19 +207,26 @@ const styles = StyleSheet.create({
         right: 0,
     },
     editButton: {
-        width: 50,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 10,
+        padding: 0,
+        backgroundColor: '#5219d8',
+    },
+    settingsButton: {
         backgroundColor: '#f0f0f0',
+        marginRight: 20,
+        marginTop: 12,
+        paddingLeft: 2,
+        paddingRight: 2,
+        paddingTop: 1.5,
+        borderRadius: 30,
     },
     editSelected: {
-        width: 50,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 10,
+        padding: 0,
         backgroundColor: 'red',
     },
     editTextSelected: {
@@ -204,7 +234,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     editText: {
-        color: 'black',
+        color: 'white',
         fontWeight: 'normal',
     },
     buttonText: {
@@ -237,14 +267,14 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         marginLeft: 0,
         marginRight: 5,
-        flex: 4,
+        flex: 3,
     },
-    buttonContainerSettings: {
+    buttonContainerEdit: {
         height: '100%',
         borderRadius: 40,
         marginLeft: 0,
         marginRight: 5,
-        flex: 3,
+        flex: 1,
     },
     buttonBarContents: {
         padding: 10,

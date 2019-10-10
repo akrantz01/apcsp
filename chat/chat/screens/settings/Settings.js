@@ -1,12 +1,12 @@
 import React from 'react';
 import {Component} from 'react';
 import {View, StatusBar, TouchableOpacity, Text, StyleSheet, ScrollView} from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
 import {Icon} from 'react-native-elements';
 import {APIService} from '../../../APIService';
+import {DataService} from '../../../DataService';
 
-export class SettingsScreen extends Component {
+export default class Settings extends Component {
     static navigationOptions = {
         title: 'Settings',
         header: null,
@@ -92,6 +92,41 @@ export class SettingsScreen extends Component {
                         />
                         <View style={styles.spacer} />
                         <Card
+                            text={'Delete Account'}
+                            textColor={'#ff4444'}
+                            iconName={'trash'}
+                            iconType={'feather'}
+                            iconColor={'#ff4444'}
+                            showArrow={false}
+                            height={50}
+                            onPress={() =>
+                                DataService.getUsername().then(username =>
+                                    APIService.deleteAccount(username)
+                                        .then(res => res.json())
+                                        .then(j => {
+                                            console.log(j, j.status);
+                                            if (j.status === 'success') {
+                                                console.log('success');
+                                                DataService.removeUserToken();
+                                                this.props.navigation.navigate('Auth');
+                                            } else {
+                                                console.log('error');
+                                            }
+                                        }),
+                                )
+                            }
+                        />
+                        <Card
+                            text={'Remove token'}
+                            textColor={'#ff4444'}
+                            iconName={'trash'}
+                            iconType={'feather'}
+                            iconColor={'#ff4444'}
+                            showArrow={false}
+                            height={50}
+                            onPress={() => DataService.removeUserToken()}
+                        />
+                        <Card
                             text={'Sign Out'}
                             textColor={'#ff4444'}
                             iconName={'log-out'}
@@ -111,8 +146,12 @@ export class SettingsScreen extends Component {
     }
 
     async _signOutAsync() {
-        await APIService.logout().then(AsyncStorage.clear());
-        this.props.navigation.navigate('Auth');
+        if ((await APIService.logout()) === 'success') {
+            await DataService.removeUserToken();
+            this.props.navigation.navigate('Auth');
+        } else {
+            console.log('error');
+        }
     }
 }
 
@@ -162,7 +201,7 @@ export const styles = StyleSheet.create({
     scrollView: {
         position: 'relative',
         width: '100%',
-        height: '100%',
+        height: '91%',
     },
     background: {
         display: 'flex',
@@ -212,6 +251,7 @@ export const styles = StyleSheet.create({
     },
     versionText: {
         color: '#bbbbbb',
+        marginBottom: 10,
     },
     cardIcon: {
         position: 'absolute',
