@@ -5,8 +5,16 @@ import LinearGradient from 'react-native-linear-gradient';
 import {Icon} from 'react-native-elements';
 import {APIService} from '../../../APIService';
 import {DataService} from '../../../DataService';
+import Dialog from 'react-native-dialog';
 
 export default class Settings extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            dialogVisible: false,
+        };
+    }
+
     static navigationOptions = {
         title: 'Settings',
         header: null,
@@ -15,6 +23,14 @@ export default class Settings extends Component {
     render() {
         return (
             <LinearGradient colors={['#00af3a', '#005baf']} style={styles.background}>
+                <Dialog.Container visible={this.state.dialogVisible}>
+                    <Dialog.Title>Error</Dialog.Title>
+                    <Dialog.Description>
+                        Could not communicate with the server. Please try again later.
+                    </Dialog.Description>
+                    <Dialog.Button label="OK" bold onPress={() => this.setState({dialogVisible: false})} />
+                </Dialog.Container>
+
                 <View maxWidth={600} style={styles.topView}>
                     <StatusBar barStyle={'light-content'} />
                     <Text style={styles.title}>Settings</Text>
@@ -151,6 +167,7 @@ export default class Settings extends Component {
             this.props.navigation.navigate('Auth');
         } else {
             console.log('error');
+            this.setState({dialogVisible: true});
         }
     }
 }

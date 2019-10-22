@@ -13,8 +13,6 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import {Avatar, Icon} from 'react-native-elements';
 import Dialog from 'react-native-dialog';
-import {DataService} from '../../../DataService';
-import {APIService} from '../../../APIService';
 
 export default class Messages extends Component {
     constructor(props) {
@@ -78,37 +76,25 @@ export default class Messages extends Component {
                 </Dialog.Container>
 
                 <StatusBar barStyle={'light-content'} networkActivityIndicatorVisible={this.state.net} />
-                <TouchableOpacity
-                    style={styles.editContainer}
-                    onPress={() => {
-                        DataService.getUserToken().then(tok => console.log(tok));
-                        navigate('Settings');
-                    }}>
-                    <View style={styles.settingsButton}>
-                        <View style={styles.buttonBarContents}>
-                            <Icon name={'settings'} type={'feather'} color={'black'} />
-                        </View>
-                    </View>
-                </TouchableOpacity>
                 <SafeAreaView style={styles.safeArea} maxWidth={600}>
-                    <Text style={styles.text}>Messages</Text>
+                    <View style={styles.bar}>
+                        <Text style={styles.text}>Messages</Text>
+                        <TouchableOpacity onPress={() => navigate('Settings')}>
+                            <View style={styles.settingsButton}>
+                                <Icon name={'settings'} type={'feather'} color={'black'} />
+                            </View>
+                        </TouchableOpacity>
+                    </View>
                     <View style={styles.buttonBar}>
                         <View style={styles.buttonContainerMessage}>
                             <TouchableOpacity
-                                onPress={
-                                    () =>
-                                        DataService.getUsername().then(username =>
-                                            APIService.deleteAccount(username).then(res => {
-                                                console.log(res);
-                                                console.log(res.json());
-                                            }),
-                                        )
-                                    // navigate({
-                                    //     routeName: 'New',
-                                    //     params: {
-                                    //         transition: 'transition',
-                                    //     },
-                                    // })
+                                onPress={() =>
+                                    navigate({
+                                        routeName: 'New',
+                                        params: {
+                                            transition: 'transition',
+                                        },
+                                    })
                                 }>
                                 <View style={styles.buttonBarButtonBackground}>
                                     <View style={styles.buttonBarContents}>
@@ -201,10 +187,26 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
     },
-    editContainer: {
-        position: 'absolute',
-        top: 20,
-        right: 0,
+    bar: {
+        display: 'flex',
+        width: '93%',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    settingsButton: {
+        flex: 1,
+        maxHeight: 42,
+        backgroundColor: 'white',
+        borderRadius: 30,
+        paddingTop: 8,
+        paddingBottom: 3,
+        paddingLeft: 19,
+        paddingRight: 19,
+        shadowColor: '#444444',
+        shadowOffset: {width: 3, height: 6},
+        shadowOpacity: 0.5,
+        shadowRadius: 3,
+        elevation: 1,
     },
     editButton: {
         flexDirection: 'row',
@@ -213,15 +215,6 @@ const styles = StyleSheet.create({
         padding: 0,
         backgroundColor: '#5219d8',
     },
-    settingsButton: {
-        backgroundColor: '#f0f0f0',
-        marginRight: 20,
-        marginTop: 12,
-        paddingLeft: 2,
-        paddingRight: 2,
-        paddingTop: 1.5,
-        borderRadius: 30,
-    },
     editSelected: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -229,13 +222,13 @@ const styles = StyleSheet.create({
         padding: 0,
         backgroundColor: 'red',
     },
-    editTextSelected: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
     editText: {
         color: 'white',
         fontWeight: 'normal',
+    },
+    editTextSelected: {
+        color: 'white',
+        fontWeight: 'bold',
     },
     buttonText: {
         marginLeft: 5,
@@ -267,7 +260,7 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         marginLeft: 0,
         marginRight: 5,
-        flex: 3,
+        flex: 4,
     },
     buttonContainerEdit: {
         height: '100%',
@@ -292,6 +285,7 @@ const styles = StyleSheet.create({
         left: 0,
     },
     text: {
+        flex: 1,
         marginLeft: 20,
         marginBottom: 10,
         fontSize: 40,

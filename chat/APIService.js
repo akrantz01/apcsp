@@ -1,7 +1,7 @@
 import {DataService} from './DataService';
 
 export class APIService {
-    static apiURL = 'http://192.168.0.111:8080/api/';
+    static apiURL = 'http://Aidans-MacBook-Pro.local:8080/api/';
 
     static async login(username, passwordHash) {
         return await fetch(this.apiURL + 'auth/login', {
@@ -19,13 +19,9 @@ export class APIService {
         })
             .then(response => response.json())
             .then(res => {
+                console.log(res);
                 if (res.status === 'success') {
-                    if (res.hasOwnProperty('data')) {
-                        return res.data.token.toString();
-                    } else {
-                        console.log('success but corrupted payload');
-                        return '';
-                    }
+                    return res.data.token.toString();
                 } else {
                     console.log('not success');
                     return '';
@@ -42,7 +38,7 @@ export class APIService {
                 }
             })
             .catch(() => {
-                console.log('catch');
+                console.log('could not contact server');
                 return false;
             });
     }
@@ -58,7 +54,9 @@ export class APIService {
                     'Content-Type': 'application/json',
                     Authorization: token.toString(),
                 },
-            }).then(response => response.json().then(r => r.status)),
+            })
+                .then(response => response.json().then(r => r.status))
+                .catch(() => 'error'),
         );
     }
 
