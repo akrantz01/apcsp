@@ -85,7 +85,13 @@ export default class Signup extends Component {
                         <View style={styles.container}>
                             <View style={styles.back}>
                                 <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
-                                    <Icon raised name="arrow-left" type="feather" color="#f50" />
+                                    <Icon
+                                        raised
+                                        name="arrow-left"
+                                        type="feather"
+                                        color="#f50"
+                                        onPress={() => this.props.navigation.goBack()}
+                                    />
                                 </TouchableOpacity>
                             </View>
                             <Text style={styles.registerText}>Register</Text>
@@ -208,7 +214,7 @@ const styles = StyleSheet.create({
     },
     textBoxContainer: {
         marginTop: 10,
-        marginBottom: 0,
+        marginBottom: 10,
     },
     goButton: {
         color: '#000000',
