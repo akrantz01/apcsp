@@ -36,20 +36,25 @@ export default class Messages extends Component {
         this.setState({refreshing: true});
 
         setTimeout(() => {
+            this.getChatsOverNetwork();
             this.setState({refreshing: false});
         }, 1000);
     }
 
     getData() {
         return [
-            {data: [{key: 0, name: 'Alex Beaver', unread: true}]},
-            {data: [{key: 1, name: 'Alex Krantz', unread: true}]},
-            {data: [{key: 2, name: 'Aidan Sacco', unread: false}]},
-            {data: [{key: 3, name: 'Guy Wilks', unread: true}]},
-            {data: [{key: 4, name: 'Kai Frondsal', unread: false}]},
-            {data: [{key: 5, name: 'Eric Ettlin', unread: false}]},
-            {data: [{key: 6, name: 'Dylan Pratt', unread: false}]},
+            {data: [{key: 0, name: 'Alex Beaver', unread: true, avatar: 'https://placeimg.com/140/140/any'}]},
+            {data: [{key: 1, name: 'Alex Krantz', unread: true, avatar: 'https://placeimg.com/140/140/any'}]},
+            {data: [{key: 2, name: 'Aidan Sacco', unread: false, avatar: 'https://placeimg.com/140/140/any'}]},
+            {data: [{key: 3, name: 'Guy Wilks', unread: true, avatar: 'https://placeimg.com/140/140/any'}]},
+            {data: [{key: 4, name: 'Kai Frondsal', unread: false, avatar: 'https://placeimg.com/140/140/any'}]},
+            {data: [{key: 5, name: 'Eric Ettlin', unread: false, avatar: 'https://placeimg.com/140/140/any'}]},
+            {data: [{key: 6, name: 'Dylan Pratt', unread: false, avatar: 'https://placeimg.com/140/140/any'}]},
         ];
+    }
+
+    getChatsOverNetwork() {
+        this.getData();
     }
 
     deleteThread() {
@@ -144,7 +149,14 @@ export default class Messages extends Component {
                                         end={{x: 1, y: 0}}
                                         colors={['white', '#dddddd']}
                                         style={styles.cardGrad}>
-                                        <Avatar rounded title="MD" size={50} />
+                                        <Avatar
+                                            rounded
+                                            title={item.name[0]}
+                                            source={{
+                                                uri: item.avatar,
+                                            }}
+                                            size={50}
+                                        />
                                         <View style={styles.cardTextContainer}>
                                             <Text style={styles.name} numberOfLines={1}>
                                                 {item.name}

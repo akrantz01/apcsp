@@ -24,6 +24,36 @@ export default class Login extends Component {
         header: null,
     };
 
+    updateButton() {
+        if (!!this.state.password && !!this.state.username) {
+            this.setState({buttonEnabled: true});
+        } else {
+            this.setState({buttonEnabled: false});
+        }
+    }
+
+    onRegister(un, pw) {
+        this.setState({username: un, password: pw});
+        this._signInAsync();
+    }
+
+    async _signInAsync() {
+        this.setState({loading: true});
+        sha256(this.state.password).then(hash => {
+            console.log('hash', hash);
+            APIService.login(this.state.username, hash).then(succeeded => {
+                if (succeeded) {
+                    DataService.saveUsername(this.state.username);
+                    this.props.navigation.navigate('App');
+                } else {
+                    console.log('error');
+                    console.log(this);
+                    this.setState({dialogVisible: true, loading: false, buttonEnabled: true});
+                }
+            });
+        });
+    }
+
     render() {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -69,7 +99,9 @@ export default class Login extends Component {
                                     <LinearGradient
                                         start={{x: 0, y: 0}}
                                         end={{x: 1, y: 0}}
-                                        colors={['#FF512F', '#F09819']}
+                                        colors={
+                                            this.state.buttonEnabled ? ['#FF512F', '#F09819'] : ['#818181', '#A4A4A4']
+                                        }
                                         style={styles.buttonGrad}>
                                         <Text style={styles.buttonText}>Go</Text>
                                     </LinearGradient>
@@ -79,40 +111,15 @@ export default class Login extends Component {
                                 title="Don't have an account?"
                                 color={'#FFFFFF'}
                                 disabled={this.state.loading}
-                                onPress={() => this.props.navigation.navigate('Signup')}
+                                onPress={() =>
+                                    this.props.navigation.navigate('Signup', {returnData: this.onRegister.bind(this)})
+                                }
                             />
                         </KeyboardAwareScrollView>
                     </LinearGradient>
                 </View>
             </TouchableWithoutFeedback>
         );
-    }
-
-    updateButton() {
-        if (!!this.state.password && !!this.state.username) {
-            this.setState({buttonEnabled: true});
-        } else {
-            this.setState({buttonEnabled: false});
-        }
-    }
-
-    async _signInAsync() {
-        this.setState({loading: true});
-        sha256(this.state.password).then(hash => {
-            console.log('hash', hash);
-            APIService.login(this.state.username, hash).then(succeeded => {
-                if (succeeded) {
-                    DataService.saveUsername(this.state.username);
-                    this.props.navigation.navigate('App');
-                } else {
-                    console.log('error');
-                    console.log(this);
-                    this.setState({dialogVisible: true, loading: false, buttonEnabled: true});
-                }
-            });
-        });
-        // AsyncStorage.setItem('authToken', 'abc');
-        // this.props.navigation.navigate('App');
     }
 }
 

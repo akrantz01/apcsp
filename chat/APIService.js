@@ -1,7 +1,7 @@
 import {DataService} from './DataService';
 
 export class APIService {
-    static apiURL = 'http://Aidans-MacBook-Pro.local:8080/api/';
+    static apiURL = 'http://10.7.64.225:8080/api/';
 
     static async login(username, passwordHash) {
         return await fetch(this.apiURL + 'auth/login', {
@@ -21,6 +21,7 @@ export class APIService {
             .then(res => {
                 console.log(res);
                 if (res.status === 'success') {
+                    DataService.saveUsername(username.toString());
                     return res.data.token.toString();
                 } else {
                     console.log('not success');
@@ -75,8 +76,18 @@ export class APIService {
                 email: email,
                 name: name,
             }),
-        });
+        })
+            .then(response => response.json())
+            .then(res => {
+                console.log(res);
+                return res.status === 'success';
+            })
+            .catch(() => {
+                console.log('could not contact server');
+                return false;
+            });
     }
+
     static async deleteAccount(username) {
         return DataService.getUserToken().then(token =>
             fetch(this.apiURL + 'users/' + username, {
@@ -96,6 +107,30 @@ export class APIService {
                 console.log(response);
                 return response;
             }),
+        );
+    }
+
+    static async getUserChats() {
+        return DataService.getUserToken().then(token =>
+            fetch(this.apiURL + 'api/chats', {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: token,
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status === 'success') {
+                        return response.data;
+                    } else {
+                        return 'error';
+                    }
+                }),
         );
     }
 }

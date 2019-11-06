@@ -5,6 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {sha256} from 'react-native-sha256';
 import {APIService} from '../../APIService';
+import Dialog from 'react-native-dialog';
 
 export default class Signup extends Component {
     constructor(props) {
@@ -17,6 +18,9 @@ export default class Signup extends Component {
             password: '',
             confirmPass: '',
             keyboardOpen: false,
+            buttonEnabled: false,
+            dialogMessage: '',
+            dialogTitle: '',
         };
         this._keyboardDidShow = this._keyboardDidShow.bind(this);
         this._keyboardDidHide = this._keyboardDidHide.bind(this);
@@ -46,33 +50,47 @@ export default class Signup extends Component {
     };
 
     async _signUpAsync() {
-        if (
-            this.state.fullName &&
-            this.state.email &&
-            this.state.username &&
-            this.state.password &&
-            this.state.confirmPass
-        ) {
-            console.log(
-                this.state.fullName,
-                this.state.email,
-                this.state.username,
-                this.state.password,
-                this.state.confirmPass,
-            );
-            this.setState({loading: true});
-            if (this.state.password === this.state.confirmPass) {
-                sha256(this.state.password).then(hash => {
-                    console.log('hash', hash);
-                    APIService.register(this.state.fullName, this.state.email, this.state.username, hash).then(res => {
-                        console.log(res);
-                        console.log(res.json());
+        this.setState({loading: true});
+        if (this.state.password === this.state.confirmPass) {
+            sha256(this.state.password).then(hash => {
+                console.log('hash', hash);
+                APIService.register(this.state.fullName, this.state.email, this.state.username, hash).then(res => {
+                    if (res) {
                         this.setState({loading: false});
-                    });
+                        this.props.navigation.state.params.returnData(this.state.username, this.state.password);
+                    } else {
+                        this.setState({
+                            dialogTitle: 'Error',
+                            dialogMessage: 'Could not communicate with the server. Please try again later.',
+                            dialogVisible: true,
+                            loading: false,
+                            buttonEnabled: true,
+                        });
+                    }
                 });
-            } else {
-                //Passwords don't match
-            }
+            });
+        } else {
+            this.setState({
+                dialogTitle: 'Mismatched Passwords',
+                dialogMessage: 'Password and Confirm Password do not match. Please try again later.',
+                dialogVisible: true,
+                loading: false,
+                buttonEnabled: true,
+            });
+        }
+    }
+
+    updateButton() {
+        if (
+            !!this.state.fullName &&
+            !!this.state.email &&
+            !!this.state.password &&
+            !!this.state.username &&
+            !!this.state.confirmPass
+        ) {
+            this.setState({buttonEnabled: true});
+        } else {
+            this.setState({buttonEnabled: false});
         }
     }
 
@@ -80,6 +98,12 @@ export default class Signup extends Component {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <React.Fragment>
+                    <Dialog.Container visible={this.state.dialogVisible}>
+                        <Dialog.Title>{this.state.dialogTitle}</Dialog.Title>
+                        <Dialog.Description>{this.state.dialogMessage}</Dialog.Description>
+                        <Dialog.Button label="OK" bold onPress={() => this.setState({dialogVisible: false})} />
+                    </Dialog.Container>
+
                     <StatusBar barStyle={'light-content'} />
                     <LinearGradient colors={['#460bbd', '#2a184d']} style={styles.background}>
                         <View style={styles.container}>
@@ -105,7 +129,10 @@ export default class Signup extends Component {
                                             placeholder={'Full Name'}
                                             placeholderTextColor={'#CCCCCC'}
                                             inputStyle={styles.inputText}
-                                            onChangeText={value => this.setState({fullName: value})}
+                                            onChangeText={value => {
+                                                this.setState({fullName: value});
+                                                this.updateButton();
+                                            }}
                                         />
                                     </View>
                                     <View style={styles.textBoxContainer}>
@@ -113,7 +140,10 @@ export default class Signup extends Component {
                                             placeholder={'E-mail'}
                                             placeholderTextColor={'#CCCCCC'}
                                             inputStyle={styles.inputText}
-                                            onChangeText={value => this.setState({email: value})}
+                                            onChangeText={value => {
+                                                this.setState({email: value});
+                                                this.updateButton();
+                                            }}
                                         />
                                     </View>
                                     <View style={styles.textBoxContainer}>
@@ -121,7 +151,10 @@ export default class Signup extends Component {
                                             placeholder={'Username'}
                                             placeholderTextColor={'#CCCCCC'}
                                             inputStyle={styles.inputText}
-                                            onChangeText={value => this.setState({username: value})}
+                                            onChangeText={value => {
+                                                this.setState({username: value});
+                                                this.updateButton();
+                                            }}
                                         />
                                     </View>
                                     <View style={styles.textBoxContainer}>
@@ -130,7 +163,10 @@ export default class Signup extends Component {
                                             placeholderTextColor={'#CCCCCC'}
                                             secureTextEntry={true}
                                             inputStyle={styles.inputText}
-                                            onChangeText={value => this.setState({password: value})}
+                                            onChangeText={value => {
+                                                this.setState({password: value});
+                                                this.updateButton();
+                                            }}
                                         />
                                     </View>
                                     <View style={styles.textBoxContainer}>
@@ -139,21 +175,26 @@ export default class Signup extends Component {
                                             placeholderTextColor={'#CCCCCC'}
                                             secureTextEntry={true}
                                             inputStyle={styles.inputText}
-                                            onChangeText={value =>
+                                            onChangeText={value => {
                                                 this.setState({
                                                     confirmPass: value,
-                                                })
-                                            }
+                                                });
+                                                this.updateButton();
+                                            }}
                                         />
                                     </View>
                                     <TouchableOpacity
                                         style={styles.goButton}
-                                        disabled={this.state.loading}
+                                        disabled={this.state.loading || !this.state.buttonEnabled}
                                         onPress={() => this._signUpAsync()}>
                                         <LinearGradient
                                             start={{x: 0, y: 0}}
                                             end={{x: 1, y: 0}}
-                                            colors={['#FF512F', '#F09819']}
+                                            colors={
+                                                this.state.buttonEnabled
+                                                    ? ['#FF512F', '#F09819']
+                                                    : ['#818181', '#A4A4A4']
+                                            }
                                             style={styles.buttonGrad}>
                                             <Text style={styles.buttonText}>Sign Up</Text>
                                         </LinearGradient>

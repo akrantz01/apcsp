@@ -45,7 +45,7 @@ export class DataService {
               ];
     }
 
-    static saveMessage(id, messages) {
+    static async saveMessage(id, messages) {
         AsyncStorage.setItem('messages_' + id, messages);
     }
 

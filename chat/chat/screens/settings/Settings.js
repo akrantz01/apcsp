@@ -61,6 +61,7 @@ export default class Settings extends Component {
                             onPress={() =>
                                 this.props.navigation.navigate('Edit', {
                                     name: 'Name',
+                                    icon: 'user',
                                 })
                             }
                         />
@@ -75,6 +76,7 @@ export default class Settings extends Component {
                             onPress={() =>
                                 this.props.navigation.navigate('Edit', {
                                     name: 'Avatar',
+                                    icon: 'image',
                                 })
                             }
                         />
@@ -89,6 +91,7 @@ export default class Settings extends Component {
                             onPress={() =>
                                 this.props.navigation.navigate('Edit', {
                                     name: 'Email Address',
+                                    icon: 'at-sign',
                                 })
                             }
                         />
@@ -186,7 +189,9 @@ export class Card extends Component {
                             <Icon name={this.props.iconName} type={this.props.iconType} color={this.props.iconColor} />
                         </View>
                         <View style={styles.cardText}>
-                            <Text style={[styles.text, {color: this.props.textColor}]}>{this.props.text}</Text>
+                            <Text style={[styles.text, this.props.textStyle, {color: this.props.textColor}]}>
+                                {this.props.text}
+                            </Text>
                         </View>
                         <View style={styles.cardArrow}>
                             {this.props.showArrow ? (
