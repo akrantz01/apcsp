@@ -71,6 +71,7 @@ The relationship between the users and chats tables is a many to many relationsh
 | username | string | Login name of the user | username |
 | password | string | Password to identify the user | _omitted_ |
 | _implicit name_ | many to many reference to chats | The chats the user is in | _omitted_ |
+| verified | boolean | Whether the wser is allowed to login or not | verified |
 
 ### Tokens
 This table stores the signing key of the token and user it is for.
@@ -78,6 +79,7 @@ There is a belongs to relationship where the token belongs to a user.
 
 | Name | Type | Description | JSON Field Name |
 |---|---|---|---|
+| type | unsigned integer | Type of the token | _omitted |
 | signing_key | string | Base64 encoded 128-bit key the JWT is signed with | _omitted_ |
 | user_id | unsigned integer | ID of the user the token is for | _omitted_ |
 

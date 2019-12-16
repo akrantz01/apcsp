@@ -62,4 +62,4 @@ The section is the enclosing field in which the keys exist.
 ## Example
 While Viper supports HCL, envfiles, and Java properties files, those configuration languages do not support nested values.
 As such only JSON, TOML, and YAML are able to properly configure the server.
-To see an example configuration file in YAML, view [config.sample.yaml](/api/config.sample.yaml).
+To see an example configuration file in YAML, view [config.sample.yaml](https://github.com/akrantz01/apcsp/blob/master/api/config.sample.yaml).
